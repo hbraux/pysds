@@ -109,4 +109,5 @@ ENV/
 *.tmp
 
 # IDE
-.idea
+.idea/
+

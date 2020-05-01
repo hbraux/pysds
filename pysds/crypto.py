@@ -6,21 +6,37 @@
 import hashlib
 import rsa
 import logging
+import io
+import base64
 from typing import ByteString
+from rsa import PrivateKey, PublicKey
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RSA_BITS = 512
-
 class Crypto(object):
 
-    def __init__(self, bits: int = DEFAULT_RSA_BITS, pubkey: str = None, privkey: str = None, genkeys: str = False):
-        if genkeys:
-            logger.debug("Generating RSA keys")
-            (self.pubkey, self.privkey) = rsa.newkeys(bits)
-        else:
+    def __init__(self, bits: int = 512, pubkey: ByteString = None, privkey: ByteString = None):
+        if pubkey:
+            if type(pubkey) is str:
+                logger.debug("converted public key from Bytes64 string to bytes")
+                self.pubkey = base64.b64decode(pubkey)
+            else:
+                self.pubkey = pubkey
+            self.__pub = PublicKey.load_pkcs1(self.pubkey, format='DER')
             self.privkey = privkey
-            self.pubkey = pubkey
+            if privkey:
+                self.__priv = PrivateKey.load_pkcs1(self.privkey, format='DER')
+            else:
+                self.__priv = None
+        else:
+            logger.debug("Generating RSA keys with %d bits", bits)
+            (self.__pub, self.__priv) = rsa.newkeys(bits)
+            pubio = io.BytesIO()
+            pubio.write(self.__pub.save_pkcs1(format='DER'))
+            self.pubkey = pubio.getvalue()
+            privio = io.BytesIO()
+            privio.write(self.__priv.save_pkcs1(format='DER'))
+            self.privkey = privio.getvalue()
 
     def hash(self, msg: ByteString) -> ByteString:
         m = hashlib.sha256()
@@ -29,7 +45,11 @@ class Crypto(object):
 
 
     def encrypt(self, msg: ByteString) -> ByteString:
-        return rsa.encrypt(msg, self.pubkey)
+        if not self.__pub:
+            raise Exception("Cannot encrypt without public key")
+        return rsa.encrypt(msg, self.__pub)
 
     def decrypt(self, msg: ByteString) -> ByteString:
-        return rsa.decrypt(msg, self.privkey)
+        if not self.__priv:
+            raise Exception("Cannot decrypt without private key")
+        return rsa.decrypt(msg, self.__priv)

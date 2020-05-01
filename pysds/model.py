@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
 """Data Model"""
-# https://docs.sqlalchemy.org/en/13/orm/tutorial.html
+
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, LargeBinary
+# https://docs.sqlalchemy.org/en/13/orm/tutorial.html
 
 Base = declarative_base()
 

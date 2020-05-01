@@ -13,7 +13,7 @@ setup(
     packages=find_packages(include=['pysds']),
     version=__version__,
     description="Python SDS",
-    entry_points={ 'console_scripts': [ 'sds=pysds.main:main' ],},
+    entry_points={ 'console_scripts': [ 'sds=pysds.cli:main' ],},
     install_requires=['rsa'],
     setup_requires=['pytest-runner','pycodestyle'],
     tests_require=['pytest'],

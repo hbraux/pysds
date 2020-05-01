@@ -1,34 +1,40 @@
+# -*- coding: utf-8 -*-
+
 import unittest
 import base64
 import os
-import shutil
-from pysds import Crypto
+import logging.config
+import logging
+from pysds.crypto import Crypto
 
 TEST_CONFIG_DIR = os.getcwd() + "/../target/"
 TEST_RSA_BITS = 512
 
-class EncoderTest(unittest.TestCase):
+logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
+
+class TestCrypto(unittest.TestCase):
 
     def test_hash(self):
-        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
+        crypto = Crypto()
         msg = "a sample message".encode()
-        h = encoder.hash(msg)
+        h = crypto.hash(msg)
         self.assertEqual(32, len(h))
         self.assertEqual(b'8Wc4FH/3nXdyg+Ax5KfSgRMcG8qhQ34Z3OZZOa+IXPQ=', base64.b64encode(h))
 
-    def test_loadkeys(self):
-        if os.path.isdir(TEST_CONFIG_DIR):
-            shutil.rmtree(TEST_CONFIG_DIR)
-        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
-        encoder.loadkeys()
-        self.assertTrue(os.path.isfile(TEST_CONFIG_DIR + "key.pk"), "private key file exists")
-        self.assertTrue(os.path.isfile(TEST_CONFIG_DIR + "key.pub"), "public key file exists")
+    def test_encrypt_decrypt(self):
+        crypto = Crypto()
+        msg = 'hello Bob!'.encode()
+        self.assertEqual(msg, crypto.decrypt(crypto.encrypt(msg)))
 
-    def test_encrypt(self):
-        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
-        encoder.loadkeys()
-        msg = 'hello Bob!'.encode('utf8')
-        self.assertEqual(msg, encoder.decrypt(encoder.encrypt(msg)))
+    def test_encrypt_with_pub(self):
+        crypto = Crypto(pubkey="MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+        msg = 'hello Bob!'.encode()
+        self.assertEqual(64, len(crypto.encrypt(msg)))
+
+    def test_decrypt_without_priv(self):
+        crypto = Crypto(pubkey="MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+        msg = 'hello Bob!'.encode()
+        self.assertRaises(Exception, crypto.decrypt, msg)
 
 
 if __name__ == '__main__':

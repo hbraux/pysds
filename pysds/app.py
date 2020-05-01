@@ -41,5 +41,5 @@ class App(object):
             raise Exception("unable to find application owner in database")
 
     def register(self, uuid: str, username: str, email: str, pubkey: str, privkey: str = None):
-        user = User(uuid, username, email, pubkey, privkey)
+        user = User(uuid=uuid, username=username, email=email, pubkey=pubkey, privkey=privkey)
         self.session.add(user)

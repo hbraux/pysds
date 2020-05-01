@@ -10,7 +10,7 @@ from typing import ByteString
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RSA_BITS = 2048
+DEFAULT_RSA_BITS = 512
 
 class Crypto(object):
 

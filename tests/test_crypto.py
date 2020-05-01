@@ -2,7 +2,7 @@ import unittest
 import base64
 import os
 import shutil
-from pysds.encoder import Encoder
+from pysds import Crypto
 
 TEST_CONFIG_DIR = os.getcwd() + "/../target/"
 TEST_RSA_BITS = 512
@@ -10,7 +10,7 @@ TEST_RSA_BITS = 512
 class EncoderTest(unittest.TestCase):
 
     def test_hash(self):
-        encoder = Encoder(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
+        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
         msg = "a sample message".encode()
         h = encoder.hash(msg)
         self.assertEqual(32, len(h))
@@ -19,13 +19,13 @@ class EncoderTest(unittest.TestCase):
     def test_loadkeys(self):
         if os.path.isdir(TEST_CONFIG_DIR):
             shutil.rmtree(TEST_CONFIG_DIR)
-        encoder = Encoder(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
+        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
         encoder.loadkeys()
         self.assertTrue(os.path.isfile(TEST_CONFIG_DIR + "key.pk"), "private key file exists")
         self.assertTrue(os.path.isfile(TEST_CONFIG_DIR + "key.pub"), "public key file exists")
 
     def test_encrypt(self):
-        encoder = Encoder(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
+        encoder = Crypto(cfg_path=TEST_CONFIG_DIR, rsa_bits=TEST_RSA_BITS)
         encoder.loadkeys()
         msg = 'hello Bob!'.encode('utf8')
         self.assertEqual(msg, encoder.decrypt(encoder.encrypt(msg)))

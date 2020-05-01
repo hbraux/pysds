@@ -13,15 +13,12 @@ from rsa import PrivateKey, PublicKey
 
 logger = logging.getLogger(__name__)
 
+
 class Crypto(object):
 
-    def __init__(self, bits: int = 512, pubkey: ByteString = None, privkey: ByteString = None):
+    def __init__(self, nbbits=512, pubkey: ByteString = None, privkey: ByteString = None):
         if pubkey:
-            if type(pubkey) is str:
-                logger.debug("converted public key from Bytes64 string to bytes")
-                self.pubkey = base64.b64decode(pubkey)
-            else:
-                self.pubkey = pubkey
+            self.pubkey = pubkey
             self.__pub = PublicKey.load_pkcs1(self.pubkey, format='DER')
             self.privkey = privkey
             if privkey:
@@ -29,8 +26,8 @@ class Crypto(object):
             else:
                 self.__priv = None
         else:
-            logger.debug("Generating RSA keys with %d bits", bits)
-            (self.__pub, self.__priv) = rsa.newkeys(bits)
+            logger.debug("Generating RSA keys with %d bits", nbbits)
+            (self.__pub, self.__priv) = rsa.newkeys(nbbits)
             pubio = io.BytesIO()
             pubio.write(self.__pub.save_pkcs1(format='DER'))
             self.pubkey = pubio.getvalue()
@@ -42,7 +39,6 @@ class Crypto(object):
         m = hashlib.sha256()
         m.update(msg)
         return m.digest()
-
 
     def encrypt(self, msg: ByteString) -> ByteString:
         if not self.__pub:

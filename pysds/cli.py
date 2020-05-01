@@ -15,8 +15,8 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
 from pysds.app import App
 from pysds.version import __version__
 
-DEFAULT_CFG_PATH = os.path.expanduser('~/.sds')
-DEFAULT_DB_URL = 'sqlite://' + DEFAULT_CFG_PATH + "/app.db"
+DEFAULT_APP_PATH = os.path.expanduser('~/.sds')
+DEFAULT_DB_URL = 'sqlite://' + DEFAULT_APP_PATH + "/app.db"
 DEFAULT_RSA_BITS = 2048
 
 # Escape Codes for colors
@@ -33,17 +33,17 @@ def die(*msg):
     sys.exit(1)
 
 def getapp():
-    app = App.get_instance(DEFAULT_CFG_PATH)
-    if not app:
+    app = App()
+    if not app.open():
         die("Application is not initialized")
     return app
 
 
-def init(username, email, dburl, bits):
-    if App.get_instance(DEFAULT_CFG_PATH):
+def init(username, email):
+    app = App()
+    if app.open():
         die("Application is already initialized")
-    App.init(DEFAULT_CFG_PATH, dburl, bits, username, email)
-
+    App.setup(username, email)
 
 def register_user(username, email, uuid, pubkey):
     getapp().register(username, email, uuid, pubkey)
@@ -57,8 +57,6 @@ def main():
 
     sub1 = subparsers.add_parser("init", help="initialize the application")
     sub1.set_defaults(func=init)
-    sub1.add_argument('-d', '--dburl', default=DEFAULT_DB_URL, help="Database Url")
-    sub1.add_argument('-b', '--bits', default=DEFAULT_RSA_BITS, help="RSA key length in bits")
     sub1.add_argument('username')
     sub1.add_argument('email')
 

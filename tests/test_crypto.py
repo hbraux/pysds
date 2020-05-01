@@ -2,15 +2,13 @@
 
 import unittest
 import base64
-import os
 import logging.config
 import logging
 from pysds.crypto import Crypto
 
-TEST_CONFIG_DIR = os.getcwd() + "/../target/"
-TEST_RSA_BITS = 512
-
 logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
+
+TEST_PUBKEY =  base64.b64decode("MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
 
 class TestCrypto(unittest.TestCase):
 
@@ -27,12 +25,12 @@ class TestCrypto(unittest.TestCase):
         self.assertEqual(msg, crypto.decrypt(crypto.encrypt(msg)))
 
     def test_encrypt_with_pub(self):
-        crypto = Crypto(pubkey="MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+        crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
         self.assertEqual(64, len(crypto.encrypt(msg)))
 
     def test_decrypt_without_priv(self):
-        crypto = Crypto(pubkey="MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+        crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
         self.assertRaises(Exception, crypto.decrypt, msg)
 

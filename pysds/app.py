@@ -58,6 +58,9 @@ class App(object):
         self.session.commit()
         logging.info("User registered %s", user)
 
+    def users(self):
+        return self.session.query(User)
+
     # PRIVATE METHODS
 
     def _open_session(self, create_schema=False):

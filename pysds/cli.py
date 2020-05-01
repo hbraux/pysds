@@ -49,7 +49,8 @@ def register_user(username, email, uuid, pubkey):
     getapp().register(username, email, uuid, pubkey)
 
 def list_users():
-    pass
+    for u in getapp().users():
+        print(u)
 
 def main():
     parser = argparse.ArgumentParser()

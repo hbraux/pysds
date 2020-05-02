@@ -11,7 +11,7 @@ import sqlalchemy
 import sqlalchemy.orm
 
 from pysds.crypto import Crypto
-from pysds.model import User, Base
+from pysds.user_service import User
 
 CFG_FILE = "/app.cfg"
 DEFAULT_USER = os.environ.get('USER')

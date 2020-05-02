@@ -14,7 +14,7 @@ setup(
     version=__version__,
     description="Python SDS",
     entry_points={ 'console_scripts': [ 'sds=pysds.cli:main' ],},
-    install_requires=['rsa'],
+    install_requires=['rsa', 'sqlalchemy'],
     setup_requires=['pytest-runner','pycodestyle'],
     tests_require=['pytest'],
     test_suite='tests',

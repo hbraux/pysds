@@ -7,8 +7,6 @@ import hashlib
 import rsa
 import logging
 import io
-import base64
-from typing import ByteString
 from rsa import PrivateKey, PublicKey
 
 logger = logging.getLogger(__name__)
@@ -16,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class Crypto(object):
 
-    def __init__(self, nbbits=512, pubkey: ByteString = None, privkey: ByteString = None):
+    def __init__(self, nbbits=512, pubkey: bytes = None, privkey: bytes = None):
         if pubkey:
             self.pubkey = pubkey
             self.__pub = PublicKey.load_pkcs1(self.pubkey, format='DER')
@@ -35,17 +33,18 @@ class Crypto(object):
             privio.write(self.__priv.save_pkcs1(format='DER'))
             self.privkey = privio.getvalue()
 
-    def hash(self, msg: ByteString) -> ByteString:
+    @staticmethod
+    def hash(msg: bytes) -> bytes:
         m = hashlib.sha256()
         m.update(msg)
         return m.digest()
 
-    def encrypt(self, msg: ByteString) -> ByteString:
+    def encrypt(self, msg: bytes) -> bytes:
         if not self.__pub:
             raise Exception("Cannot encrypt without public key")
         return rsa.encrypt(msg, self.__pub)
 
-    def decrypt(self, msg: ByteString) -> ByteString:
+    def decrypt(self, msg: bytes) -> bytes:
         if not self.__priv:
             raise Exception("Cannot decrypt without private key")
         return rsa.decrypt(msg, self.__priv)

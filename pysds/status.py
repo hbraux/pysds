@@ -26,19 +26,17 @@ class Status:
         return _status._errmsg
 
     @staticmethod
-    def failed(msg: str, logger: Logger = None) -> None:
+    def failed(msg: str, logger: Logger = None):
         if logger:
             logger.error(msg)
         _status._errmsg = msg
-        return None
 
     @staticmethod
-    def catched(e: Exception, logger: Logger = None) -> None:
+    def catched(e: Exception, logger: Logger = None):
         msg = type(e).__name__ + ': ' + getattr(e, 'message', str(e)).partition('\n')[0]
         if logger:
             logger.error(msg)
         _status._errmsg = msg
-        return None
 
 
 _status = Status()

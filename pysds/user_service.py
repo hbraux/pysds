@@ -35,7 +35,8 @@ class UserService(metaclass=Singleton):
 
     def register(self, name: str = DEFAULT_USER, email: str = DEFAULT_EMAIL) -> Union[User, None]:
         if self._db.get(User, User.sid == 1):
-            return Status.failed("Owner is already registered", logger)
+            Status.failed("Owner is already registered", logger)
+            return None
         uid = str(uuid.uuid4())
         crypto = Crypto(self._config.rsabits)
         self._owner = User(uid=uid, name=name, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
@@ -45,7 +46,8 @@ class UserService(metaclass=Singleton):
         try:
             pubkey = base64.b64decode(pubstr)
         except binascii.Error as e:
-            return Status.catched(e, logger)
+            Status.catched(e, logger)
+            return None
         user = User(uid=uid, name=name, email=email, pubkey=pubkey)
         return self._db.add(user)
 

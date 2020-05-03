@@ -6,7 +6,7 @@ import logging.config
 import uuid
 
 from config import Config
-from errors import application_error
+from errors import AppError
 from user_service import UserService
 
 logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
@@ -22,17 +22,26 @@ class TestUser(unittest.TestCase):
         cfg = Config(path=TEST_PATH, dbtype='memory', rsabits=256)
         self.service = UserService()
 
+    def test_set_owner(self):
+        owner = self.service.set_owner()
+        self.assertEqual(True, self.owner is not None)
+        self.assertEqual(owner, self.service.get_owner())
+
+    def test_set_owner_dup(self):
+        self.assertEqual(None, self.service.set_owner(name="mickael"))
+        self.assertEqual("IntegrityError:", AppError.msg())
+        
     def test_register(self):
         self.assertEqual(True, self.service.add(TEST_UID, "testuser", "test@email.org", TEST_PUBKEY))
 
     def test_register_duplicate(self):
         self.assertEqual(False, self.service.add(TEST_UID, "otheruser", "other@email.org", TEST_PUBKEY))
         self.assertEqual("IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: users.uid",
-                         application_error())
+                         AppError.msg())
 
     def test_register_badkey(self):
         self.assertEqual(False, self.service.add(str(uuid.uuid4()), "otheruser", "other@email.org", "hello"))
-        self.assertEqual("Error: Incorrect padding", application_error())
+        self.assertEqual("Error: Incorrect padding", AppError.msg())
 
 
 if __name__ == '__main__':

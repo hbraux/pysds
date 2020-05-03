@@ -10,7 +10,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from errors import application_error
+from errors import AppError
 from singleton import Singleton
 from config import Config
 
@@ -39,14 +39,16 @@ class Database(metaclass=Singleton):
             engine = sqlalchemy.create_engine(dburl)
         self._session = sessionmaker(bind=engine)()
 
-    def get(self, entity, sid=None, uid=None) -> Any:
+    def get(self, entity, sid, uid=None) -> Any:
         return self._session.query(entity).filter('sid' == sid)
 
-    def add(self, obj) -> bool:
+    def add(self, obj) -> Any:
         try:
             self._session.add(obj)
             self._session.commit()
         except sqlalchemy.exc.IntegrityError as e:
-            return application_error(e)
+            logger.error(e)
+            AppError.catched(e)
+            return None
         logger.info("%s added to db", obj)
-        return True
+        return obj

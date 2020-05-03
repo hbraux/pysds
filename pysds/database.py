@@ -10,7 +10,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from errors import AppError
+from status import Status
 from singleton import Singleton
 from config import Config
 
@@ -47,8 +47,6 @@ class Database(metaclass=Singleton):
             self._session.add(obj)
             self._session.commit()
         except sqlalchemy.exc.IntegrityError as e:
-            logger.error(e)
-            AppError.catched(e)
-            return None
+            return Status.catched(e, logger)
         logger.info("%s added to db", obj)
         return obj

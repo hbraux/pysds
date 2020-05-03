@@ -12,7 +12,7 @@ from config import Config
 from crypto import Crypto
 from database import Database
 from datamodel import User
-from errors import AppError
+from status import Status
 from singleton import Singleton
 
 DEFAULT_USER = os.environ.get('USER')
@@ -35,7 +35,7 @@ class UserService(metaclass=Singleton):
 
     def set_owner(self, name: str = DEFAULT_USER, email: str = DEFAULT_EMAIL) -> User:
         if self._db.get(User, 1):
-            AppError("User 1 already registered")
+            Status("User 1 already registered")
             return None
         uid = str(uuid.uuid4())
         crypto = Crypto(self.config.rsabits)
@@ -46,7 +46,6 @@ class UserService(metaclass=Singleton):
         try:
             pubkey = base64.b64decode(pubstr)
         except binascii.Error as e:
-            AppError(e)
-            return None
+            return Status.catched(e, logger)
         user = User(uid=uid, name=name, email=email, pubkey=pubkey)
         return self._db.add(user)

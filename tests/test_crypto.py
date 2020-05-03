@@ -20,20 +20,32 @@ class TestCrypto(unittest.TestCase):
         self.assertEqual(32, len(h))
         self.assertEqual(b'8Wc4FH/3nXdyg+Ax5KfSgRMcG8qhQ34Z3OZZOa+IXPQ=', base64.b64encode(h))
 
+    def test_aencrypt_adecrypt(self):
+        crypto = Crypto(genkeys=True)
+        msg = 'hello Bob!'.encode()
+        self.assertEqual(msg, crypto.adecrypt(crypto.aencrypt(msg)))
+
+    def test_aencrypt_with_pub(self):
+        crypto = Crypto(pubkey=TEST_PUBKEY)
+        msg = 'hello Bob!'.encode()
+        self.assertEqual(64, len(crypto.aencrypt(msg)))
+
+    def test_adecrypt_without_priv(self):
+        crypto = Crypto(pubkey=TEST_PUBKEY)
+        msg = 'hello Bob!'.encode()
+        self.assertRaises(Exception, crypto.adecrypt, msg)
+
     def test_encrypt_decrypt(self):
         crypto = Crypto()
         msg = 'hello Bob!'.encode()
-        self.assertEqual(msg, crypto.decrypt(crypto.encrypt(msg)))
+        key = crypto.hash("secret".encode())
+        self.assertEqual(msg, crypto.decrypt(key, crypto.encrypt(key, msg)))
 
-    def test_encrypt_with_pub(self):
-        crypto = Crypto(pubkey=TEST_PUBKEY)
-        msg = 'hello Bob!'.encode()
-        self.assertEqual(64, len(crypto.encrypt(msg)))
-
-    def test_decrypt_without_priv(self):
-        crypto = Crypto(pubkey=TEST_PUBKEY)
-        msg = 'hello Bob!'.encode()
-        self.assertRaises(Exception, crypto.decrypt, msg)
+    def test_encrypt_decrypt16(self):
+        crypto = Crypto()
+        msg = '1234567890ABCDEF'.encode()
+        key = crypto.hash("secret".encode())
+        self.assertEqual(msg, crypto.decrypt(key, crypto.encrypt(key, msg)))
 
 
 if __name__ == '__main__':

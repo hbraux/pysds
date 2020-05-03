@@ -7,14 +7,17 @@ import hashlib
 import rsa
 import logging
 import io
+
+from Crypto import Random
 from rsa import PrivateKey, PublicKey
+from Crypto.Cipher import AES
 
 logger = logging.getLogger(__name__)
 
 
 class Crypto(object):
 
-    def __init__(self, nbbits=512, pubkey: bytes = None, privkey: bytes = None):
+    def __init__(self, nbbits=512, pubkey: bytes = None, privkey: bytes = None, genkeys=False):
         if pubkey:
             self.pubkey = pubkey
             self.__pub = PublicKey.load_pkcs1(self.pubkey, format='DER')
@@ -23,7 +26,7 @@ class Crypto(object):
                 self.__priv = PrivateKey.load_pkcs1(self.privkey, format='DER')
             else:
                 self.__priv = None
-        else:
+        elif genkeys:
             logger.debug("Generating RSA keys with %d bits", nbbits)
             (self.__pub, self.__priv) = rsa.newkeys(nbbits)
             pubio = io.BytesIO()
@@ -34,17 +37,36 @@ class Crypto(object):
             self.privkey = privio.getvalue()
 
     @staticmethod
-    def hash(msg: bytes) -> bytes:
+    def hash(raw: bytes) -> bytes:
         m = hashlib.sha256()
-        m.update(msg)
+        m.update(raw)
         return m.digest()
 
-    def encrypt(self, msg: bytes) -> bytes:
+    def aencrypt(self, raw: bytes) -> bytes:
         if not self.__pub:
             raise Exception("Cannot encrypt without public key")
-        return rsa.encrypt(msg, self.__pub)
+        return rsa.encrypt(raw, self.__pub)
 
-    def decrypt(self, msg: bytes) -> bytes:
+    def adecrypt(self, raw: bytes) -> bytes:
         if not self.__priv:
             raise Exception("Cannot decrypt without private key")
-        return rsa.decrypt(msg, self.__priv)
+        return rsa.decrypt(raw, self.__priv)
+
+    @staticmethod
+    def encrypt(key: bytes, raw: bytes) -> bytes:
+        padding = AES.block_size - len(raw) % AES.block_size
+        padded = raw + padding * bytes((padding,))
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        return iv + cipher.encrypt(padded)
+
+    @staticmethod
+    def decrypt(key: bytes, raw: bytes) -> bytes:
+        iv = raw[:AES.block_size]
+        cipher = AES.new(key, AES.MODE_CBC, iv)
+        deciph = cipher.decrypt(raw[AES.block_size:])
+        padding = deciph[len(deciph) - 1:][0]
+        return deciph[:-padding]
+
+
+

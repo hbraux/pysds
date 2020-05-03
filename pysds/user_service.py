@@ -38,7 +38,7 @@ class UserService(metaclass=Singleton):
             Status.failed("Owner is already registered", logger)
             return None
         uid = str(uuid.uuid4())
-        crypto = Crypto(self._config.rsabits)
+        crypto = Crypto(self._config.rsabits, genkeys=True)
         self._owner = User(uid=uid, name=name, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
         return self._db.add(self._owner)
 

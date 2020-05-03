@@ -8,7 +8,9 @@ from pysds.crypto import Crypto
 
 logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
 
-TEST_PUBKEY =  base64.b64decode("MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+TEST_PUBKEY = base64.b64decode(
+    "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
+
 
 class TestCrypto(unittest.TestCase):
 

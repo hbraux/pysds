@@ -37,16 +37,20 @@ class Database(metaclass=Singleton):
         else:
             logger.info("Using database %s", dburl)
             engine = sqlalchemy.create_engine(dburl)
-        self._session = sessionmaker(bind=engine)()
+        maker = sessionmaker(bind=engine)
+        self._session = maker()
 
-    def get(self, entity, sid, uid=None) -> Any:
-        return self._session.query(entity).filter('sid' == sid)
+    def get(self, entity, cond) -> Any:
+        return self._session.query(entity).filter(cond).scalar()
+
+    def list(self, entity) -> Any:
+        return self._session.query(entity).all()
 
     def add(self, obj) -> Any:
         try:
             self._session.add(obj)
             self._session.commit()
-        except sqlalchemy.exc.IntegrityError as e:
+        except Exception as e:
             return Status.catched(e, logger)
         logger.info("%s added to db", obj)
         return obj

@@ -6,7 +6,7 @@ import binascii
 import logging
 import uuid
 import os
-from typing import ByteString
+from typing import List, Union
 
 from config import Config
 from crypto import Crypto
@@ -23,29 +23,31 @@ logger = logging.getLogger(__name__)
 
 class UserService(metaclass=Singleton):
 
-    def __init__(self, db=None, config=Config):
+    def __init__(self, db=None, config=None):
         self._db = db or Database()
         self._config = config or Config()
         self._owner = None
 
-    def get_owner(self) -> User:
+    def registered(self) -> User:
         if not self._owner:
             self._owner = self._db.get(User, 1)
         return self._owner
 
-    def set_owner(self, name: str = DEFAULT_USER, email: str = DEFAULT_EMAIL) -> User:
-        if self._db.get(User, 1):
-            Status("User 1 already registered")
-            return None
+    def register(self, name: str = DEFAULT_USER, email: str = DEFAULT_EMAIL) -> Union[User, None]:
+        if self._db.get(User, User.sid == 1):
+            return Status.failed("Owner is already registered", logger)
         uid = str(uuid.uuid4())
-        crypto = Crypto(self.config.rsabits)
-        self._owner = User(uid=str(uuid.uuid4()), name=name, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
-        return self.db.add(self._owner)
+        crypto = Crypto(self._config.rsabits)
+        self._owner = User(uid=uid, name=name, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        return self._db.add(self._owner)
 
-    def register(self, uid: str, name: str, email: str, pubstr: str) -> User:
+    def add(self, uid: str, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
             pubkey = base64.b64decode(pubstr)
         except binascii.Error as e:
             return Status.catched(e, logger)
         user = User(uid=uid, name=name, email=email, pubkey=pubkey)
         return self._db.add(user)
+
+    def list(self) -> List[User]:
+        return self._db.list(User)

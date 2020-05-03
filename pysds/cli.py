@@ -8,11 +8,13 @@ import os
 import argparse
 import logging.config
 
+from status import Status
+from user_service import UserService
+
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
     sys.exit(-1)
 
-from pysds.app import App
 from pysds.version import __version__
 
 DEFAULT_APP_PATH = os.path.expanduser('~/.sds')
@@ -25,6 +27,7 @@ EC_END = '\033[0m'
 
 logging.config.fileConfig('logging.ini')
 
+
 def die(*msg):
     sys.stderr.write(EC_RED)
     sys.stderr.write("Error: ")
@@ -32,25 +35,21 @@ def die(*msg):
     sys.stderr.write(EC_END)
     sys.exit(1)
 
-def getapp():
-    app = App()
-    if not app.open():
-        die("Application is not initialized")
-    return app
-
 
 def init(username, email):
-    app = App()
-    if app.open():
-        die("Application is already initialized")
-    App.setup(username, email)
+    if not UserService().register(username, email):
+        die(Status.errormsg())
+
 
 def register_user(username, email, uuid, pubkey):
-    getapp().register(username, email, uuid, pubkey)
+    if not UserService().add(username, email, uuid, pubkey):
+        die(Status.errormsg())
+
 
 def list_users():
-    for u in getapp().users():
+    for u in UserService().list():
         print(u)
+
 
 def main():
     parser = argparse.ArgumentParser()

@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """Error handling"""
-from logging import Logger
 
 
 class Status:
@@ -26,16 +25,12 @@ class Status:
         return _status._errmsg
 
     @staticmethod
-    def failed(msg: str, logger: Logger = None):
-        if logger:
-            logger.error(msg)
+    def failed(msg: str):
         _status._errmsg = msg
 
     @staticmethod
-    def catched(e: Exception, logger: Logger = None):
+    def catched(e: Exception):
         msg = type(e).__name__ + ': ' + getattr(e, 'message', str(e)).partition('\n')[0]
-        if logger:
-            logger.error(msg)
         _status._errmsg = msg
 
 

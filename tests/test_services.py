@@ -7,13 +7,13 @@ import logging.config
 from config import Config
 from datamodel import User
 from status import Status
-from user_service import UserService
-
-logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
+from services import UserService
 
 TEST_PATH = os.path.abspath(os.getcwd() + "/../target/")
 TEST_PUBKEY = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
 TEST_UID = "8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a"
+
+logging.config.fileConfig('logging_test.ini', disable_existing_loggers=True)
 
 
 class TestUser(unittest.TestCase):
@@ -21,16 +21,11 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         Config(path=TEST_PATH, dbtype='memory', rsabits=256)
 
-    def test1_register(self):
+    def test_init(self):
         service = UserService()
-        owner = service.register()
-        self.assertEqual(User, type(owner ))
-        self.assertEqual(owner , service.registered())
-        duplicate = service.register(name="mickael")
-        self.assertEqual(None, duplicate)
-        self.assertEqual("Owner is already registered", Status.errormsg())
+        self.assertEqual(User, type(service.admin))
 
-    def test2_add_list(self):
+    def test_add_list(self):
         service = UserService()
         user = service.add(TEST_UID, "testuser", "test@email.org", TEST_PUBKEY)
         self.assertEqual(User, type(user))
@@ -40,7 +35,7 @@ class TestUser(unittest.TestCase):
         self.assertEqual("IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: users.uid",
                          Status.errormsg())
 
-    def test3_add_badkey(self):
+    def test_add_badkey(self):
         service = UserService()
         user = service.add(TEST_UID, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)

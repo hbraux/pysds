@@ -2,8 +2,8 @@
 
 """Database Layer"""
 
-import logging
 import os
+import logging
 from typing import Any
 
 import sqlalchemy
@@ -23,34 +23,36 @@ class Database(metaclass=Singleton):
 
     def __init__(self, config=None):
         self.config = config or Config()
-        dbfile = "/" + self.config.dbtype  + ".db"
+        self.dbfile = "/" + self.config.dbtype + ".db"
         if self.config.dbtype == 'memory':
-            dburl = 'sqlite:///:memory:'
+            self.dburl = 'sqlite:///:memory:'
         else:
-            dburl = 'sqlite:///' + self.config .path + dbfile
-        if not os.path.isfile(self.config .path + dbfile):
-            logger.info("Creating database %s", dburl)
-            if not os.path.isdir(self.config .path):
-                os.makedirs(self.config .path)
-            engine = sqlalchemy.create_engine(dburl)
+            self.dburl = 'sqlite:///' + self.config.path + self.dbfile
+        if not os.path.isfile(self.config.path + self.dbfile):
+            logger.info("Creating database %s", self.dburl)
+            if not os.path.isdir(self.config.path):
+                os.makedirs(self.config.path)
+            engine = sqlalchemy.create_engine(self.dburl)
             Base.metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
         else:
-            logger.info("Using database %s", dburl)
-            engine = sqlalchemy.create_engine(dburl)
+            logger.info("Opening database %s", self.dburl)
+            engine = sqlalchemy.create_engine(self.dburl)
         maker = sessionmaker(bind=engine)
-        self._session = maker()
+        self.session = maker()
 
     def get(self, entity, cond) -> Any:
-        return self._session.query(entity).filter(cond).scalar()
+        return self.session.query(entity).filter(cond).scalar()
 
     def list(self, entity) -> Any:
-        return self._session.query(entity).all()
+        return self.session.query(entity).all()
 
     def add(self, obj) -> Any:
         try:
-            self._session.add(obj)
-            self._session.commit()
+            self.session.add(obj)
+            self.session.commit()
         except Exception as e:
-            return Status.catched(e, logger)
+            Status.catched(e)
+            logger.error(e)
+            return None
         logger.info("%s added to db", obj)
         return obj

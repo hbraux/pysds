@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
 __title__ = 'pysds'
-from .version import __version__
+__version__ = '0.0.1'
+
 

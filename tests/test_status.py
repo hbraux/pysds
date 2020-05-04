@@ -1,12 +1,7 @@
 # -*- coding: utf-8 -*-
-
-import logging.config
 import unittest
 
 from status import Status
-
-logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
-logger = logging.getLogger(__name__)
 
 
 class TestStatus(unittest.TestCase):
@@ -22,6 +17,6 @@ class TestStatus(unittest.TestCase):
         Status.clear()
         self.assertEqual(True, Status.success())
         e = Exception("Some exception")
-        Status.catched(e, logger)
+        Status.catched(e)
         self.assertEqual(True, Status.failure())
         self.assertEqual("Exception: Some exception", Status.errormsg())

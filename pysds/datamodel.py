@@ -18,7 +18,7 @@ class User(Base):
     privkey = Column(LargeBinary)
 
     def __repr__(self):
-        return "<User(%s,%s,%s)>" % (self.sid, self.uid, self.name)
+        return "<User(%s, %s, %s, %s)>" % (self.sid, self.name, self.email, self.uid)
 
 
 class Dataset(Base):
@@ -32,4 +32,4 @@ class Dataset(Base):
     file = Column(String)
 
     def __repr__(self):
-        return "<Dataset(%s,%s,%s)>" % (self.sid, self.uid, self.name)
+        return "<Dataset(%s, %s, %s)>" % (self.sid, self.name, self.uid)

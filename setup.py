@@ -5,7 +5,7 @@
 
 from setuptools import setup, find_packages
 
-from pysds.version import __version__
+from pysds.__init__ import __version__
 
 setup(
     name='pysds',

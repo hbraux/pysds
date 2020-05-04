@@ -5,9 +5,8 @@
 
 import hashlib
 import rsa
-import logging
 import io
-
+import logging
 from Crypto import Random
 from rsa import PrivateKey, PublicKey
 from Crypto.Cipher import AES

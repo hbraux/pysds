@@ -11,18 +11,20 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from status import Status
-from singleton import Singleton
 from config import Config
+
+# https://github.com/alecthomas/injector
+from injector import inject
 
 logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
 
-class Database(metaclass=Singleton):
-
-    def __init__(self, config=None):
-        self.config = config or Config()
+class Database:
+    @inject
+    def __init__(self, config: Config):
+        self.config = config
         self.dbfile = "/" + self.config.dbtype + ".db"
         if self.config.dbtype == 'memory':
             self.dburl = 'sqlite:///:memory:'

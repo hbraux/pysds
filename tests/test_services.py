@@ -4,6 +4,8 @@ import unittest
 import os
 import logging.config
 
+from injector import Injector
+
 from config import Config
 from datamodel import User
 from status import Status
@@ -13,20 +15,20 @@ TEST_PATH = os.path.abspath(os.getcwd() + "/../target/")
 TEST_PUBKEY = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
 TEST_UID = "8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a"
 
-logging.config.fileConfig('logging_test.ini', disable_existing_loggers=True)
-
 
 class TestUser(unittest.TestCase):
 
     def setUp(self):
-        Config(path=TEST_PATH, dbtype='memory', rsabits=256)
+        logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
+        self.injector = Injector()
+        self.injector.binder.bind(Config, to=Config.test())
 
     def test_init(self):
-        service = UserService()
+        service = self.injector.get(UserService)
         self.assertEqual(User, type(service.admin))
 
     def test_add_list(self):
-        service = UserService()
+        service = self.injector.get(UserService)
         user = service.add(TEST_UID, "testuser", "test@email.org", TEST_PUBKEY)
         self.assertEqual(User, type(user))
         self.assertIn(user, service.list())
@@ -36,7 +38,7 @@ class TestUser(unittest.TestCase):
                          Status.errormsg())
 
     def test_add_badkey(self):
-        service = UserService()
+        service = self.injector.get(UserService)
         user = service.add(TEST_UID, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)
         self.assertEqual("Error: Incorrect padding", Status.errormsg())

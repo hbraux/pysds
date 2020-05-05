@@ -20,8 +20,16 @@ class TestCrypto(unittest.TestCase):
         self.assertEqual(32, len(h))
         self.assertEqual(b'8Wc4FH/3nXdyg+Ax5KfSgRMcG8qhQ34Z3OZZOa+IXPQ=', base64.b64encode(h))
 
+    def test_genkeys(self):
+        crypto = Crypto()
+        crypto.genkeys(256)
+        self.assertIsNotNone(crypto.pubkey)
+        self.assertIsNotNone(crypto.privkey)
+        self.assertEqual(42, len(crypto.pubkey))
+
     def test_aencrypt_adecrypt(self):
-        crypto = Crypto(genkeys=True)
+        crypto = Crypto()
+        crypto.genkeys(512)
         msg = 'hello Bob!'.encode()
         self.assertEqual(msg, crypto.adecrypt(crypto.aencrypt(msg)))
 

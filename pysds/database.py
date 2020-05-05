@@ -42,6 +42,9 @@ class Database:
         maker = sessionmaker(bind=engine)
         self.session = maker()
 
+    def create(self):
+        pass
+
     def get(self, entity, cond) -> Any:
         return self.session.query(entity).filter(cond).scalar()
 

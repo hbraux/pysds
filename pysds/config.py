@@ -4,6 +4,10 @@
 
 import os
 
+CONFIG_PATH = os.getenv('SDS_CONFIG_PATH', '~/.sds')
+CONFIG_FILE = "sds.ini"
+CONFIG_URL = 'sqlite:///' + CONFIG_PATH + "/sqlite.db"
+
 
 class Config:
     def __init__(self, path='~/.sds', dbtype='sqlite', rsabits=2048):

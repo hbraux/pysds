@@ -16,24 +16,21 @@ logger = logging.getLogger(__name__)
 
 class Crypto(object):
 
-    def __init__(self, nbbits=512, pubkey: bytes = None, privkey: bytes = None, genkeys=False):
-        if pubkey:
-            self.pubkey = pubkey
-            self.__pub = PublicKey.load_pkcs1(self.pubkey, format='DER')
-            self.privkey = privkey
-            if privkey:
-                self.__priv = PrivateKey.load_pkcs1(self.privkey, format='DER')
-            else:
-                self.__priv = None
-        elif genkeys:
-            logger.debug("Generating RSA keys with %d bits", nbbits)
-            (self.__pub, self.__priv) = rsa.newkeys(nbbits)
-            pubio = io.BytesIO()
-            pubio.write(self.__pub.save_pkcs1(format='DER'))
-            self.pubkey = pubio.getvalue()
-            privio = io.BytesIO()
-            privio.write(self.__priv.save_pkcs1(format='DER'))
-            self.privkey = privio.getvalue()
+    def __init__(self, pubkey: bytes = None, privkey: bytes = None):
+        self.pubkey = pubkey
+        self.privkey = privkey
+        self._pub = PublicKey.load_pkcs1(pubkey, format='DER') if pubkey else None
+        self._priv = PrivateKey.load_pkcs1(privkey, format='DER') if privkey else None
+
+    def genkeys(self, length: int) -> None:
+        logger.debug("Generating RSA keys with %d bits", length)
+        (self._pub, self._priv) = rsa.newkeys(length)
+        pubio = io.BytesIO()
+        pubio.write(self._pub.save_pkcs1(format='DER'))
+        self.pubkey = pubio.getvalue()
+        privio = io.BytesIO()
+        privio.write(self._priv.save_pkcs1(format='DER'))
+        self.privkey = privio.getvalue()
 
     @staticmethod
     def hash(raw: bytes) -> bytes:
@@ -42,14 +39,14 @@ class Crypto(object):
         return m.digest()
 
     def aencrypt(self, raw: bytes) -> bytes:
-        if not self.__pub:
+        if not self._pub:
             raise Exception("Cannot encrypt without public key")
-        return rsa.encrypt(raw, self.__pub)
+        return rsa.encrypt(raw, self._pub)
 
     def adecrypt(self, raw: bytes) -> bytes:
-        if not self.__priv:
+        if not self._priv:
             raise Exception("Cannot decrypt without private key")
-        return rsa.decrypt(raw, self.__priv)
+        return rsa.decrypt(raw, self._priv)
 
     @staticmethod
     def encrypt(key: bytes, raw: bytes) -> bytes:

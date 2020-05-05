@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 
 """Command Line Interface"""
-
+import os
 import sys
 import argparse
 import logging.config
+
+from config import CONFIG_PATH, CONFIG_URL, CONFIG_FILE
 from status import Status
-from services import UserService
+from services import Services
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
@@ -31,19 +33,31 @@ def die(*msg):
     sys.exit(1)
 
 
+def init_app(dburl = CONFIG_URL):
+    if not os.path.isdir(CONFIG_PATH):
+        os.makedirs(CONFIG_PATH)
+    with open(CONFIG_PATH + "/" + CONFIG_FILE,"w") as f:
+        f.write("dburl: " + dburl)
+    Services.init()
+
+
 def register_user(username, email, uuid, pubkey):
-    if not UserService().add(username, email, uuid, pubkey):
+    if not Services.userService.add(username, email, uuid, pubkey):
         die(Status.errormsg())
 
 
 def list_users():
-    for u in UserService().list():
+    for u in Services.userService.list():
         print(u)
 
 
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='subcommands')
+
+    sub1 = subparsers.add_parser("init", help="initialize the app")
+    sub1.set_defaults(func=init_app)
+    sub1.add_argument('-u', '--url', help="DB Url")
 
     sub2 = subparsers.add_parser("register", help="register an external user")
     sub2.set_defaults(func=register_user)

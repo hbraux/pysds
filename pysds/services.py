@@ -8,7 +8,7 @@ import os
 import logging
 from typing import List, Union
 
-from injector import inject
+from injector import inject, Injector
 
 from config import Config
 from crypto import Crypto
@@ -25,15 +25,15 @@ class UserService:
     def __init__(self, database: Database, config: Config):
         self.database = database
         self.config = config
-        self.admin = self.database.get(User, User.sid == 1) or self.create_admin()
+        self.admin = None
 
-    def create_admin(self) -> User:
+    def create_admin(self) -> None:
         uid = str(uuid.uuid4())
-        crypto = Crypto(self.config.rsabits, genkeys=True)
+        crypto = Crypto()
+        crypto.genkeys(self.config.rsabits)
         username = os.environ.get('USER')
         email = username + "@admin"
         self.admin = User(uid=uid, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
-        return self.database.add(self.admin)
 
     def add(self, uid: str, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
@@ -47,3 +47,23 @@ class UserService:
 
     def list(self) -> List[User]:
         return self.database.list(User)
+
+
+class DataSetService:
+
+    @inject
+    def __init__(self, database: Database, config: Config):
+        self.database = database
+        self.config = config
+
+
+class Services:
+    injector = Injector()
+    userService = injector.get(UserService)
+    dataSetService = injector.get(DataSetService)
+
+    @classmethod
+    def init(cls):
+        cls.userService.database.create()
+        cls.userService.create_admin()
+

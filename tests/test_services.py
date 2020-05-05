@@ -20,26 +20,26 @@ class TestUser(unittest.TestCase):
 
     def setUp(self):
         logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
-        self.injector = Injector()
-        self.injector.binder.bind(Config, to=Config.test())
+        injector = Injector()
+        injector.binder.bind(Config, to=Config.test())
+        self.service = injector.get(UserService)
+        self.service.database.create()
 
-    def test_init(self):
-        service = self.injector.get(UserService)
-        self.assertEqual(User, type(service.admin))
+    def test_create_admin(self):
+        self.service.create_admin()
+        self.assertEqual(User, type(self.service.admin))
 
     def test_add_list(self):
-        service = self.injector.get(UserService)
-        user = service.add(TEST_UID, "testuser", "test@email.org", TEST_PUBKEY)
+        user = self.service.add(TEST_UID, "testuser", "test@email.org", TEST_PUBKEY)
         self.assertEqual(User, type(user))
-        self.assertIn(user, service.list())
-        duplicate = service.add(TEST_UID, "otheruser", "other@email.org", TEST_PUBKEY)
+        self.assertIn(user, self.service.list())
+        duplicate = self.service.add(TEST_UID, "otheruser", "other@email.org", TEST_PUBKEY)
         self.assertEqual(None, duplicate)
         self.assertEqual("IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: users.uid",
                          Status.errormsg())
 
     def test_add_badkey(self):
-        service = self.injector.get(UserService)
-        user = service.add(TEST_UID, "otheruser", "other@email.org", "bad key")
+        user = self.service.add(TEST_UID, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)
         self.assertEqual("Error: Incorrect padding", Status.errormsg())
 

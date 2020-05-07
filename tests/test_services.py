@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import unittest
-import os
 import logging.config
 
 from injector import Injector
@@ -10,8 +9,8 @@ from config import Config
 from datamodel import User
 from status import Status
 from services import UserService
+from test_config import CONFIG_4TEST
 
-TEST_PATH = os.path.abspath(os.getcwd() + "/../target/")
 TEST_PUBKEY = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
 TEST_UID = "8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a"
 
@@ -21,7 +20,7 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
         injector = Injector()
-        injector.binder.bind(Config, to=Config.test())
+        injector.binder.bind(Config, to=CONFIG_4TEST)
         self.service = injector.get(UserService)
         self.service.database.create()
 
@@ -44,5 +43,3 @@ class TestUser(unittest.TestCase):
         self.assertEqual("Error: Incorrect padding", Status.errormsg())
 
 
-if __name__ == '__main__':
-    unittest.main()

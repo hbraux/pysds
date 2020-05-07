@@ -55,6 +55,3 @@ class TestCrypto(unittest.TestCase):
         key = crypto.hash("secret".encode())
         self.assertEqual(msg, crypto.decrypt(key, crypto.encrypt(key, msg)))
 
-
-if __name__ == '__main__':
-    unittest.main()

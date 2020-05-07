@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 """Command Line Interface"""
-import os
+
 import sys
 import argparse
 import logging.config
 
-from config import CONFIG_PATH, CONFIG_URL, CONFIG_FILE
+from config import Config
 from status import Status
 from services import Services
 
@@ -33,12 +33,11 @@ def die(*msg):
     sys.exit(1)
 
 
-def init_app(dburl = CONFIG_URL):
-    if not os.path.isdir(CONFIG_PATH):
-        os.makedirs(CONFIG_PATH)
-    with open(CONFIG_PATH + "/" + CONFIG_FILE,"w") as f:
-        f.write("dburl: " + dburl)
+def init_app(url):
+    Config(dburl=url).create()
     Services.init()
+    if Status.failure():
+        die(Status.errormsg())
 
 
 def register_user(username, email, uuid, pubkey):

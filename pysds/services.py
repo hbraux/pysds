@@ -30,7 +30,7 @@ class UserService:
     def create_admin(self) -> None:
         uid = str(uuid.uuid4())
         crypto = Crypto()
-        crypto.genkeys(self.config.rsabits)
+        crypto.genkeys(self.config.keylen)
         username = os.environ.get('USER')
         email = username + "@admin"
         self.admin = User(uid=uid, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)

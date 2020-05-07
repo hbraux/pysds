@@ -2,7 +2,6 @@
 
 """Database Layer"""
 
-import os
 import logging
 from typing import Any
 
@@ -24,37 +23,39 @@ Base = declarative_base()
 class Database:
     @inject
     def __init__(self, config: Config):
-        self.config = config
-        self.dbfile = "/" + self.config.dbtype + ".db"
-        if self.config.dbtype == 'memory':
-            self.dburl = 'sqlite:///:memory:'
-        else:
-            self.dburl = 'sqlite:///' + self.config.path + self.dbfile
-        if not os.path.isfile(self.config.path + self.dbfile):
-            logger.info("Creating database %s", self.dburl)
-            if not os.path.isdir(self.config.path):
-                os.makedirs(self.config.path)
-            engine = sqlalchemy.create_engine(self.dburl)
-            Base.metadata.create_all(engine, Base.metadata.tables.values(), checkfirst=True)
-        else:
-            logger.info("Opening database %s", self.dburl)
-            engine = sqlalchemy.create_engine(self.dburl)
-        maker = sessionmaker(bind=engine)
-        self.session = maker()
+        self.dburl = config.dburl
+        self._session = None
+        self._engine = None
 
     def create(self):
-        pass
+        logger.info("Creating schema for %s", self.dburl)
+        self._engine = sqlalchemy.create_engine(self.dburl)
+        tables = Base.metadata.tables
+        Base.metadata.create_all(self._engine, tables.values(), checkfirst=True)
+        logger.debug("creating tables: " + ",".join(k for k in tables.keys()))
+
+    def session(self):
+        if not self._session:
+            logger.info("Opening %s", self.dburl)
+            if not self._engine:
+                self._engine = sqlalchemy.create_engine(self.dburl)
+            maker = sessionmaker(bind=self._engine)
+            self._session = maker()
+        return self._session
+
+    def close(self):
+        self.session().close()
 
     def get(self, entity, cond) -> Any:
-        return self.session.query(entity).filter(cond).scalar()
+        return self.session().query(entity).filter(cond).scalar()
 
     def list(self, entity) -> Any:
-        return self.session.query(entity).all()
+        return self.session().query(entity).all()
 
     def add(self, obj) -> Any:
         try:
-            self.session.add(obj)
-            self.session.commit()
+            self.session().add(obj)
+            self.session().commit()
         except Exception as e:
             Status.catched(e)
             logger.error(e)

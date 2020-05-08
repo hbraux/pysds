@@ -1,17 +1,20 @@
 # -*- coding: utf-8 -*-
 import logging.config
+import os
 import unittest
 import base64
 
 from pysds.crypto import Crypto
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = base64.b64decode(
     "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
 
-logging.config.fileConfig('logging_test.ini', disable_existing_loggers=True)
-
 
 class TestCrypto(unittest.TestCase):
+
+    def setUp(self) -> None:
+        logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
 
     def test_hash(self):
         crypto = Crypto()

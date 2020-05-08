@@ -4,12 +4,13 @@
 # https://stuvel.eu/python-rsa-doc/usage.html#encryption-and-decryption
 
 import hashlib
-import rsa
 import io
 import logging
+
+import rsa
 from Crypto import Random
-from rsa import PrivateKey, PublicKey
 from Crypto.Cipher import AES
+from rsa import PrivateKey, PublicKey
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,7 @@ class Crypto(object):
         self._priv = PrivateKey.load_pkcs1(privkey, format='DER') if privkey else None
 
     def genkeys(self, length: int) -> None:
-        logger.debug("Generating RSA keys with %d bits", length)
+        logger.info("Generating RSA keys with %d bits", length)
         (self._pub, self._priv) = rsa.newkeys(length)
         pubio = io.BytesIO()
         pubio.write(self._pub.save_pkcs1(format='DER'))
@@ -63,6 +64,8 @@ class Crypto(object):
         deciph = cipher.decrypt(raw[AES.block_size:])
         padding = deciph[len(deciph) - 1:][0]
         return deciph[:-padding]
+
+
 
 
 

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-
+import os
 import unittest
 import logging.config
 
 from injector import Injector
 
-from config import Config
-from datamodel import User
-from services import UserService
+from pysds.config import Config
+from pysds.datamodel import User
+from pysds.services import UserService
 from test_config import config4test
 
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
 TEST_UID = "8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a"
 
@@ -17,7 +18,7 @@ TEST_UID = "8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a"
 class TestUser(unittest.TestCase):
 
     def setUp(self):
-        logging.config.fileConfig('logging_test.ini', disable_existing_loggers=False)
+        logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
         injector = Injector()
         injector.binder.bind(Config, to=config4test())
         self.service = injector.get(UserService)

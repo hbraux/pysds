@@ -3,16 +3,17 @@
 """Database Layer"""
 
 import logging
+import os
 from typing import Any
 
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from config import Config
+from pysds.config import Config
 
 # https://github.com/alecthomas/injector
-from injector import inject, singleton
+from injector import inject
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +24,9 @@ class Database:
     @inject
     def __init__(self, config: Config):
         self.dburl = config.dburl
-        if config.init:
+        if config.setup:
+            if os.path.isfile(config.dburl.replace('sqlite://', '')):
+                raise Exception("Database " + config.dburl + " already exists")
             logger.info("Creating schema for %s", config.dburl)
             engine = sqlalchemy.create_engine(config.dburl)
             tables = Base.metadata.tables

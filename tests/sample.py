@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer
 
-from database import Base
+from pysds.database import Base
 
 
 class Sample(Base):

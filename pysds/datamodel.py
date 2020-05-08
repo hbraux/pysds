@@ -4,7 +4,7 @@
 
 # because of metadata, the data model depends upon sqlalchemy types
 from sqlalchemy import Column, Integer, String, LargeBinary
-from database import Base
+from pysds.database import Base
 
 
 class User(Base):

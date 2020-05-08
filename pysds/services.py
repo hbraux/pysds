@@ -10,13 +10,12 @@ from typing import List, Union
 
 from injector import inject, Injector
 
-from config import Config
-from crypto import Crypto
-from database import Database
-from datamodel import User
+from pysds.config import Config
+from pysds.crypto import Crypto
+from pysds.database import Database
+from pysds.datamodel import User
 
 logger = logging.getLogger(__name__)
-
 
 class Service:
     _error_msg = None
@@ -54,13 +53,19 @@ class UserService(Service):
         self.config = config
         self.admin = None
 
-    def create_admin(self) -> None:
+    def create_admin(self) -> Union[User, None]:
         uid = str(uuid.uuid4())
         crypto = Crypto()
         crypto.genkeys(self.config.keylen)
         username = os.environ.get('USER')
         email = username + "@admin"
         self.admin = User(uid=uid, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        try:
+            self.database.add(self.admin)
+        except Exception as e:
+            return self.catched(e)
+        logger.info("Admin user created")
+        return self.admin
 
     def add(self, uid: str, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
@@ -86,16 +91,19 @@ class DatasetService(Service):
         self.config = config
 
 
-class Services:
+class Services(Service):
     _injector = Injector()
     _us = None
     _ds = None
 
     @classmethod
     def init(cls):
-        cls._injector.binder.bind(Config, to=Config(init=True))
-        cls._us = cls._injector.get(UserService)
-        cls._us.create_admin()
+        cls._injector.binder.bind(Config, to=Config(setup=True))
+        try:
+            cls._us = cls._injector.get(UserService)
+            return cls._us.create_admin()
+        except Exception as e:
+            return cls.catched(e)
 
     @classmethod
     def user(cls) -> UserService:

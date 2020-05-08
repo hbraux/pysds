@@ -14,12 +14,39 @@ from config import Config
 from crypto import Crypto
 from database import Database
 from datamodel import User
-from status import Status
 
 logger = logging.getLogger(__name__)
 
 
-class UserService:
+class Service:
+    _error_msg = None
+
+    @classmethod
+    def failed(cls, msg: str) -> None:
+        logger.error(msg)
+        cls._error_msg = msg
+        return None
+
+    @classmethod
+    def catched(cls, e: Exception) -> None:
+        msg = type(e).__name__ + ': ' + getattr(e, 'message', str(e)).partition('\n')[0]
+        return cls.failed(msg)
+
+    @classmethod
+    def failure(cls) -> bool:
+        return cls._error_msg is not None
+
+    @classmethod
+    def success(cls) -> bool:
+        return cls._error_msg is None
+
+
+    @classmethod
+    def errormsg(cls) -> str:
+        return cls._error_msg
+
+
+class UserService(Service):
 
     @inject
     def __init__(self, database: Database, config: Config):
@@ -39,17 +66,19 @@ class UserService:
         try:
             pubkey = base64.b64decode(pubstr)
         except binascii.Error as e:
-            logger.error(e)
-            Status.catched(e)
-            return None
+            return self.catched(e)
         user = User(uid=uid, name=name, email=email, pubkey=pubkey)
-        return self.database.add(user)
+        try:
+            self.database.add(user)
+        except Exception as e:
+            return self.catched(e)
+        return user
 
     def list(self) -> List[User]:
         return self.database.list(User)
 
 
-class DataSetService:
+class DatasetService(Service):
 
     @inject
     def __init__(self, database: Database, config: Config):
@@ -58,12 +87,24 @@ class DataSetService:
 
 
 class Services:
-    injector = Injector()
-    userService = injector.get(UserService)
-    dataSetService = injector.get(DataSetService)
+    _injector = Injector()
+    _us = None
+    _ds = None
 
     @classmethod
     def init(cls):
-        cls.userService.database.create()
-        cls.userService.create_admin()
+        cls._injector.binder.bind(Config, to=Config(init=True))
+        cls._us = cls._injector.get(UserService)
+        cls._us.create_admin()
 
+    @classmethod
+    def user(cls) -> UserService:
+        if not cls._us:
+            cls._us = cls._injector.get(UserService)
+        return cls._us
+
+    @classmethod
+    def dataset(cls) -> DatasetService:
+        if not cls._ds:
+            cls._us = cls._injector.get(UserService)
+        return cls._ds

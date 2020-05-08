@@ -9,4 +9,4 @@ class Sample(Base):
     __tablename__ = 'sample'
 
     sid = Column(Integer, primary_key=True, autoincrement=True)
-    msg = Column(String)
+

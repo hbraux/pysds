@@ -7,9 +7,7 @@ import sys
 import argparse
 import logging.config
 
-from config import Config
-from status import Status
-from services import Services
+from services import Services, Service
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
@@ -34,19 +32,18 @@ def die(*msg):
 
 
 def init_app(url):
-    Config(dburl=url).create()
     Services.init()
-    if Status.failure():
-        die(Status.errormsg())
 
 
 def register_user(username, email, uuid, pubkey):
-    if not Services.userService.add(username, email, uuid, pubkey):
-        die(Status.errormsg())
+    service = Services.user()
+    if not service.add(username, email, uuid, pubkey):
+        die(service.errormsg())
 
 
 def list_users():
-    for u in Services.userService.list():
+    service = Services.user()
+    for u in service.list():
         print(u)
 
 

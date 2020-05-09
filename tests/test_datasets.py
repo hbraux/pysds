@@ -23,6 +23,6 @@ class TestDatasets(unittest.TestCase):
 
     def test_add_csv(self):
         csvfile = ROOT_DIR + "/wires.csv"
-        ds = self.service.add("test", open(csvfile))
+        ds = self.service.add("test", csvfile, {}, ignore=True)
         self.assertEqual(Dataset, type(ds))
 

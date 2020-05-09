@@ -26,7 +26,7 @@ class TestUsers(unittest.TestCase):
         self.assertIsNotNone(self.service.admin)
 
     def test_add_list(self):
-        testuid = str(uuid.uuid4())
+        testuid = uuid.uuid4()
         pubkey = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
         user = self.service.add(testuid, "testuser", "test@email.org", pubkey)
         self.assertEqual(User, type(user))
@@ -37,14 +37,9 @@ class TestUsers(unittest.TestCase):
                          self.service.errormsg())
 
     def test_add_badkey(self):
-        testuid = str(uuid.uuid4())
+        testuid = uuid.uuid4()
         user = self.service.add(testuid, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)
         self.assertEqual("Error: Incorrect padding", self.service.errormsg())
 
-    def test_add_baduid(self):
-        testuid = 'e0e68196-375b-4078-a34-f8de4b406276'
-        user = self.service.add(testuid, "otheruser", "other@email.org", "bad key")
-        self.assertEqual(None, user)
-        self.assertEqual("ValueError: badly formed hexadecimal UUID string", self.service.errormsg())
 

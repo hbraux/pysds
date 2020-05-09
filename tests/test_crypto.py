@@ -3,8 +3,9 @@ import logging.config
 import os
 import unittest
 import base64
+import uuid
 
-from pysds.crypto import Crypto
+from pysds.crypto import Crypto, CryptoError
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = base64.b64decode(
@@ -30,31 +31,49 @@ class TestCrypto(unittest.TestCase):
         self.assertIsNotNone(crypto.privkey)
         self.assertEqual(42, len(crypto.pubkey))
 
-    def test_aencrypt_adecrypt(self):
+    def test_asym_encrypt_adecrypt(self):
         crypto = Crypto()
         crypto.genkeys(512)
         msg = 'hello Bob!'.encode()
-        self.assertEqual(msg, crypto.rsa_decrypt(crypto.rsa_encrypt(msg)))
+        self.assertEqual(msg, crypto.asdecrypt(crypto.asencrypt(msg)))
 
-    def test_aencrypt_with_pub(self):
+    def test_asym_encrypt_with_pub(self):
         crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
-        self.assertEqual(64, len(crypto.rsa_encrypt(msg)))
+        self.assertEqual(64, len(crypto.asencrypt(msg)))
 
-    def test_adecrypt_without_priv(self):
+    def test_asym_decrypt_without_priv(self):
         crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
-        self.assertRaises(Exception, crypto.rsa_decrypt, msg)
+        self.assertRaises(CryptoError, crypto.asdecrypt, msg)
 
     def test_encrypt_decrypt(self):
-        crypto = Crypto()
+        crypto = Crypto(secret=uuid.uuid4().bytes)
         msg = 'hello Bob!'.encode()
-        key = crypto.hash("secret".encode())
-        self.assertEqual(msg, crypto.aes_decrypt(key, crypto.aes_encrypt(key, msg)))
+        self.assertEqual(msg, crypto.decrypt(crypto.encrypt(msg)))
 
     def test_encrypt_decrypt16(self):
-        crypto = Crypto()
+        crypto = Crypto(secret=uuid.uuid4().bytes)
         msg = '1234567890ABCDEF'.encode()
-        key = crypto.hash("secret".encode())
-        self.assertEqual(msg, crypto.aes_decrypt(key, crypto.aes_encrypt(key, msg)))
+        self.assertEqual(msg, crypto.decrypt(crypto.encrypt(msg)))
+
+    def test_encrypt_without_secret(self):
+        crypto = Crypto()
+        msg = 'hello Bob!'.encode()
+        self.assertRaises(CryptoError, crypto.encrypt, msg)
+
+    def test_write_read(self):
+        crypto = Crypto(secret=uuid.uuid4().bytes)
+        line = 'some line to encrypt'
+        tstfile = ROOT_DIR + "/crypto.sds"
+        with open(tstfile, "wb") as wio:
+            crypto.write(wio, line)
+        with open(tstfile, "rb") as rio:
+            rline = crypto.read(rio)
+        self.assertEqual(line, rline)
+
+
+
+
+
 

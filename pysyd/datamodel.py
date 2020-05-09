@@ -3,7 +3,7 @@
 """Data Model"""
 
 from sqlalchemy import Column, Integer, String, LargeBinary
-from pysds.database import Base
+from pysyd.database import Base
 
 
 class User(Base):

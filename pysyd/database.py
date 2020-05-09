@@ -10,7 +10,7 @@ import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from pysds.config import Config
+from pysyd.config import Config
 
 # https://github.com/alecthomas/injector
 from injector import inject

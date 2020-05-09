@@ -111,5 +111,6 @@ ENV/
 .idea/
 
 # data files
-*.sds
+*.syd
+
 

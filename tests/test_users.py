@@ -6,9 +6,9 @@ import uuid
 
 from injector import Injector
 
-from pysds.config import Config
-from pysds.datamodel import User
-from pysds.services import UserService
+from pysyd.config import Config
+from pysyd.datamodel import User
+from pysyd.services import UserService
 from test_config import config4test
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

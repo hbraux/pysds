@@ -5,7 +5,7 @@ import unittest
 import base64
 import uuid
 
-from pysds.crypto import Crypto, CryptoError
+from pysyd.crypto import Crypto, CryptoError
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = base64.b64decode(
@@ -65,7 +65,7 @@ class TestCrypto(unittest.TestCase):
     def test_write_read(self):
         crypto = Crypto(secret=uuid.uuid4().bytes)
         line = 'some line to encrypt'
-        tstfile = ROOT_DIR + "/crypto.sds"
+        tstfile = ROOT_DIR + "/crypto.syd"
         with open(tstfile, "wb") as wio:
             crypto.write(wio, line)
         with open(tstfile, "rb") as rio:

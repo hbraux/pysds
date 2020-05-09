@@ -4,7 +4,7 @@ import os
 import shutil
 import unittest
 
-from pysds.config import Config, CONFIG_FILE
+from pysyd.config import Config, CONFIG_FILE
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_CFG_PATH = os.path.abspath(ROOT_DIR + "/../target/")

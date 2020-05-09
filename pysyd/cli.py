@@ -10,8 +10,8 @@ import logging.config
 import uuid
 from json import JSONDecodeError
 
-from pysds.services import Services
-from pysds.__init__ import __version__
+from pysyd.services import Services
+from pysyd.__init__ import __version__
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")

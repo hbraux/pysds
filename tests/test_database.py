@@ -5,8 +5,8 @@ import unittest
 
 from injector import Injector
 
-from pysds.config import Config
-from pysds.database import Database
+from pysyd.config import Config
+from pysyd.database import Database
 from sample import Sample
 from test_config import config4test
 

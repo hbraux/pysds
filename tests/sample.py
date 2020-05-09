@@ -2,7 +2,7 @@
 
 from sqlalchemy import Column, Integer
 
-from pysds.database import Base
+from pysyd.database import Base
 
 
 class Sample(Base):

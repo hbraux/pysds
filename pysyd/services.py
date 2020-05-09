@@ -11,10 +11,10 @@ from typing import List, Union
 
 from injector import inject, Injector
 
-from pysds.config import Config
-from pysds.crypto import Crypto
-from pysds.database import Database
-from pysds.datamodel import User, Dataset
+from pysyd.config import Config
+from pysyd.crypto import Crypto
+from pysyd.database import Database
+from pysyd.datamodel import User, Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +88,7 @@ class UserService(Service):
 class DatasetService(Service):
     DATASET_UUID = "5ab43121-a28c-4a38-8e9a-f5904f20ec05"
     DATASET_VERSION = 1
-    DATASET_EXTENSION = '.sds'
+    DATASET_EXTENSION = '.syd'
 
     @inject
     def __init__(self, database: Database, config: Config, us: UserService):

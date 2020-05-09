@@ -59,7 +59,7 @@ class UserService(Service):
         crypto.genkeys(self.config.keylen)
         username = os.environ.get('USER')
         email = username + "@admin"
-        admin = User(uid=uuid4.bytes, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        admin = User(uid=str(uuid4), name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
         try:
             self.database.add(admin)
         except Exception as e:
@@ -73,7 +73,7 @@ class UserService(Service):
             pubkey = base64.b64decode(pubstr)
         except (binascii.Error, ValueError) as e:
             return self.catched(e)
-        user = User(uid=uuid4.bytes, name=name, email=email, pubkey=pubkey)
+        user = User(uid=str(uuid4), name=name, email=email, pubkey=pubkey)
         try:
             self.database.add(user)
         except Exception as e:
@@ -87,6 +87,7 @@ class UserService(Service):
 class DatasetService(Service):
     DATASET_UUID = "5ab43121-a28c-4a38-8e9a-f5904f20ec05"
     DATASET_VERSION = 1
+    DATASET_EXTENSION = '.sds'
 
     @inject
     def __init__(self, database: Database, config: Config, us: UserService):
@@ -98,7 +99,7 @@ class DatasetService(Service):
         if self.database.get(Dataset, Dataset.name == name):
             return self.failed("a dataset with name %s is already in the store")
         if not outputfile:
-            outputfile = os.path.splitext(inputio.name)[0] + '.sec'
+            outputfile = os.path.abspath(os.path.splitext(inputio.name)[0] + self.DATASET_EXTENSION)
         uuid4 = uuid.uuid4()
         crypto = Crypto(self.admin.pubkey, self.admin.privkey)
         key = crypto.hash(uuid4.bytes)
@@ -106,12 +107,15 @@ class DatasetService(Service):
             out.write(uuid.UUID(self.DATASET_UUID).bytes)
             out.write(self.DATASET_VERSION.to_bytes(2, 'little'))
             out.write(uuid4.bytes)
-            out.write(self.admin.uid)
+            out.write(uuid.UUID(self.admin.uid).bytes)
+            # TODO: copy metadata
             for line in inputio:
+                # TODO: file encrypt in crypto
                 buffer = crypto.aes_encrypt(key, line.encode('utf8'))
                 out.write(len(buffer).to_bytes(2, 'little'))
                 out.write(buffer)
-        ds = Dataset(uid=uuid4.bytes, name=name, desc="some description", file=outputfile, seckey=key)
+        ds = Dataset(uid=str(uuid4), name=name, meta="", owner=self.admin.uid, file=outputfile)
+        inputio.close()
         try:
             self.database.add(ds)
         except Exception as e:

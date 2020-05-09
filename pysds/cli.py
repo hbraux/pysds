@@ -14,7 +14,6 @@ if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
     sys.exit(-1)
 
-
 # Escape Codes for colors
 EC_RED = '\033[31m'
 EC_END = '\033[0m'
@@ -45,22 +44,44 @@ def list_users():
         print(u)
 
 
+def add_dataset(name, inputio, outputfile):
+    service = Services.dataset()
+    if not service.add(name, inputio, outputfile):
+        die(service.errormsg())
+
+
+def import_dataset(datafile):
+    service = Services.dataset()
+    if not service.add_external(datafile):
+        die(service.errormsg())
+
+
 def main():
     parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers(title='subcommands')
+    subparsers = parser.add_subparsers(title='spcommands')
 
-    sub1 = subparsers.add_parser("init", help="initialize the app")
-    sub1.set_defaults(func=init_app)
+    sp1 = subparsers.add_parser("init", help="initialize the app")
+    sp1.set_defaults(func=init_app)
 
-    sub2 = subparsers.add_parser("register", help="register an external user")
-    sub2.set_defaults(func=register_user)
-    sub2.add_argument('username')
-    sub2.add_argument('email')
-    sub2.add_argument('uuid')
-    sub2.add_argument('pubkey')
+    sp2 = subparsers.add_parser("register", help="register an external user")
+    sp2.set_defaults(func=register_user)
+    sp2.add_argument('username')
+    sp2.add_argument('email')
+    sp2.add_argument('uuid')
+    sp2.add_argument('pubkey')
 
-    sub3 = subparsers.add_parser("users")
-    sub3.set_defaults(func=list_users)
+    sp3 = subparsers.add_parser("users")
+    sp3.set_defaults(func=list_users)
+
+    sp4 = subparsers.add_parser("add", help="add an internal dataset")
+    sp4.set_defaults(func=add_dataset)
+    sp4.add_argument('name')
+    sp4.add_argument('-o', '--outputfile', help="encoded file path")
+    sp4.add_argument('inputfile', type=argparse.FileType('rb'))
+
+    sp5 = subparsers.add_parser("import", help="import an internal dataset")
+    sp5.set_defaults(func=import_dataset)
+    sp5.add_argument('datafile', type=argparse.FileType('rb'))
 
     parser.add_argument('--version', action='version', version="%(prog)s " + __version__)
 

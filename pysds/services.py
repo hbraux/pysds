@@ -6,16 +6,17 @@ import binascii
 import uuid
 import os
 import logging
-from typing import List, Union
+from typing import List, Union, TextIO
 
 from injector import inject, Injector
 
 from pysds.config import Config
 from pysds.crypto import Crypto
 from pysds.database import Database
-from pysds.datamodel import User
+from pysds.datamodel import User, Dataset
 
 logger = logging.getLogger(__name__)
+
 
 class Service:
     _error_msg = None
@@ -39,7 +40,6 @@ class Service:
     def success(cls) -> bool:
         return cls._error_msg is None
 
-
     @classmethod
     def errormsg(cls) -> str:
         return cls._error_msg
@@ -51,28 +51,29 @@ class UserService(Service):
     def __init__(self, database: Database, config: Config):
         self.database = database
         self.config = config
-        self.admin = None
+        self.admin = self.create_admin() if config.setup else self.database.get(User, User.sid == 1)
 
     def create_admin(self) -> Union[User, None]:
-        uid = str(uuid.uuid4())
+        uuid4 = uuid.uuid4()
         crypto = Crypto()
         crypto.genkeys(self.config.keylen)
         username = os.environ.get('USER')
         email = username + "@admin"
-        self.admin = User(uid=uid, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        admin = User(uid=uuid4.bytes, name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
         try:
-            self.database.add(self.admin)
+            self.database.add(admin)
         except Exception as e:
             return self.catched(e)
         logger.info("Admin user created")
-        return self.admin
+        return admin
 
     def add(self, uid: str, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
+            uuid4 = uuid.UUID(uid)
             pubkey = base64.b64decode(pubstr)
-        except binascii.Error as e:
+        except (binascii.Error, ValueError) as e:
             return self.catched(e)
-        user = User(uid=uid, name=name, email=email, pubkey=pubkey)
+        user = User(uid=uuid4.bytes, name=name, email=email, pubkey=pubkey)
         try:
             self.database.add(user)
         except Exception as e:
@@ -84,11 +85,49 @@ class UserService(Service):
 
 
 class DatasetService(Service):
+    DATASET_UUID = "5ab43121-a28c-4a38-8e9a-f5904f20ec05"
+    DATASET_VERSION = 1
 
     @inject
-    def __init__(self, database: Database, config: Config):
+    def __init__(self, database: Database, config: Config, us: UserService):
         self.database = database
         self.config = config
+        self.admin: User = us.admin
+
+    def add(self, name: str, inputio: TextIO, outputfile: str = None) -> Union[Dataset, None]:
+        if self.database.get(Dataset, Dataset.name == name):
+            return self.failed("a dataset with name %s is already in the store")
+        if not outputfile:
+            outputfile = os.path.splitext(inputio.name)[0] + '.sec'
+        uuid4 = uuid.uuid4()
+        crypto = Crypto(self.admin.pubkey, self.admin.privkey)
+        key = crypto.hash(uuid4.bytes)
+        with open(outputfile, "wb") as out:
+            out.write(uuid.UUID(self.DATASET_UUID).bytes)
+            out.write(self.DATASET_VERSION.to_bytes(2, 'little'))
+            out.write(uuid4.bytes)
+            out.write(self.admin.uid)
+            for line in inputio:
+                buffer = crypto.aes_encrypt(key, line.encode('utf8'))
+                out.write(len(buffer).to_bytes(2, 'little'))
+                out.write(buffer)
+        ds = Dataset(uid=uuid4.bytes, name=name, desc="some description", file=outputfile, seckey=key)
+        try:
+            self.database.add(ds)
+        except Exception as e:
+            return self.catched(e)
+        return ds
+
+    def add_external(self, reader) -> Dataset:
+        raise NotImplementedError()
+
+
+class Token(Service):
+    TOKEN_UUID = "a6416f6a-eb43-4494-ab49-61c148e61d9c"
+    TOKEN_VERSION = 1
+
+    def __init__(self, database: Database):
+        self.database = database
 
 
 class Services(Service):
@@ -101,7 +140,6 @@ class Services(Service):
         cls._injector.binder.bind(Config, to=Config(setup=True))
         try:
             cls._us = cls._injector.get(UserService)
-            return cls._us.create_admin()
         except Exception as e:
             return cls.catched(e)
 
@@ -114,5 +152,5 @@ class Services(Service):
     @classmethod
     def dataset(cls) -> DatasetService:
         if not cls._ds:
-            cls._us = cls._injector.get(UserService)
+            cls._ds = cls._injector.get(Dataset)
         return cls._ds

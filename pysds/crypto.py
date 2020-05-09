@@ -6,6 +6,8 @@
 import hashlib
 import io
 import logging
+import marshal
+import time
 
 import rsa
 from Crypto import Random
@@ -33,24 +35,25 @@ class Crypto(object):
         privio.write(self._priv.save_pkcs1(format='DER'))
         self.privkey = privio.getvalue()
 
-    @staticmethod
-    def hash(raw: bytes) -> bytes:
+    def hash(self, raw: bytes) -> bytes:
         m = hashlib.sha256()
         m.update(raw)
+        if self.privkey:
+            m.update(self.privkey)
         return m.digest()
 
-    def aencrypt(self, raw: bytes) -> bytes:
+    def rsa_encrypt(self, raw: bytes) -> bytes:
         if not self._pub:
             raise Exception("Cannot encrypt without public key")
         return rsa.encrypt(raw, self._pub)
 
-    def adecrypt(self, raw: bytes) -> bytes:
+    def rsa_decrypt(self, raw: bytes) -> bytes:
         if not self._priv:
             raise Exception("Cannot decrypt without private key")
         return rsa.decrypt(raw, self._priv)
 
     @staticmethod
-    def encrypt(key: bytes, raw: bytes) -> bytes:
+    def aes_encrypt(key: bytes, raw: bytes) -> bytes:
         padding = AES.block_size - len(raw) % AES.block_size
         padded = raw + padding * bytes((padding,))
         iv = Random.new().read(AES.block_size)
@@ -58,14 +61,20 @@ class Crypto(object):
         return iv + cipher.encrypt(padded)
 
     @staticmethod
-    def decrypt(key: bytes, raw: bytes) -> bytes:
+    def aes_decrypt(key: bytes, raw: bytes) -> bytes:
         iv = raw[:AES.block_size]
         cipher = AES.new(key, AES.MODE_CBC, iv)
         deciph = cipher.decrypt(raw[AES.block_size:])
         padding = deciph[len(deciph) - 1:][0]
         return deciph[:-padding]
 
-
+    @staticmethod
+    def lock(enckey: bytes, secret: bytes, duration: int) -> bytes:
+        expir = str(int(time.time()) + duration)
+        xor = str(bytes([a ^ b for a, b in zip(secret, enckey)]))
+        code = eval("lambda: decrypt(bytes([a ^ b for a, b in zip(sec, " + xor + ")], raw) if time.time()<" + expir
+                    + "else None")
+        return marshal.dumps(code.__code__)
 
 
 

@@ -34,27 +34,27 @@ class TestCrypto(unittest.TestCase):
         crypto = Crypto()
         crypto.genkeys(512)
         msg = 'hello Bob!'.encode()
-        self.assertEqual(msg, crypto.adecrypt(crypto.aencrypt(msg)))
+        self.assertEqual(msg, crypto.rsa_decrypt(crypto.rsa_encrypt(msg)))
 
     def test_aencrypt_with_pub(self):
         crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
-        self.assertEqual(64, len(crypto.aencrypt(msg)))
+        self.assertEqual(64, len(crypto.rsa_encrypt(msg)))
 
     def test_adecrypt_without_priv(self):
         crypto = Crypto(pubkey=TEST_PUBKEY)
         msg = 'hello Bob!'.encode()
-        self.assertRaises(Exception, crypto.adecrypt, msg)
+        self.assertRaises(Exception, crypto.rsa_decrypt, msg)
 
     def test_encrypt_decrypt(self):
         crypto = Crypto()
         msg = 'hello Bob!'.encode()
         key = crypto.hash("secret".encode())
-        self.assertEqual(msg, crypto.decrypt(key, crypto.encrypt(key, msg)))
+        self.assertEqual(msg, crypto.aes_decrypt(key, crypto.aes_encrypt(key, msg)))
 
     def test_encrypt_decrypt16(self):
         crypto = Crypto()
         msg = '1234567890ABCDEF'.encode()
         key = crypto.hash("secret".encode())
-        self.assertEqual(msg, crypto.decrypt(key, crypto.encrypt(key, msg)))
+        self.assertEqual(msg, crypto.aes_decrypt(key, crypto.aes_encrypt(key, msg)))
 

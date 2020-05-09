@@ -21,6 +21,5 @@ test: ## run unit tests
 testcli:  ## run cli tests
 	rm -fr $(SDS_CONFIG_PATH)
 	sds init
-	-sds init
 	sds register testuser test@email.org 8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=
 	sds users

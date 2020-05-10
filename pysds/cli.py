@@ -13,7 +13,6 @@ from json import JSONDecodeError
 from pysds.__init__ import __version__
 from pysds.services import Services
 
-
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
     sys.exit(-1)
@@ -49,8 +48,10 @@ def to_json(s: str) -> dict:
 
 
 def init_app():
-    if not Services.init():
+    admin = Services.init()
+    if not admin:
         die(Services.errormsg())
+    print(admin)
 
 
 def register_user(username, email, uid, pubkey):
@@ -68,14 +69,20 @@ def list_users():
 def add_dataset(name, inputfile, outputfile, metadatafile, ignore):
     service = Services.dataset()
     meta = to_json(metadatafile.readlines() if metadatafile else '{}')
-    if not service.add(name, inputfile.name, outputfile, meta, ignore=ignore):
+    if len(name) > 128:
+        die("Max length for name is 128")
+    dataset = service.add(name, inputfile.name, outputfile, meta, ignore=ignore)
+    if not dataset:
         die(service.errormsg())
+    print(dataset)
 
 
 def import_dataset(datafile):
     service = Services.dataset()
-    if not service.add_external(datafile):
+    dataset = service.add_external(datafile.name)
+    if not dataset:
         die(service.errormsg())
+    print(dataset)
 
 
 def main():
@@ -100,7 +107,7 @@ def main():
     sp4.add_argument('name')
     sp4.add_argument('-o', '--outputfile', help="encoded file path")
     sp4.add_argument('-m', '--metadatafile', type=argparse.FileType('r'))
-    sp4.add_argument('-i', '--ignore', action='store_true')
+    sp4.add_argument('-i', '--ignore', action='store_true', help="ignore existing files or datasets")
     sp4.add_argument('inputfile', type=argparse.FileType('rb'))
 
     sp5 = subparsers.add_parser("import", help="import an internal dataset")
@@ -112,8 +119,9 @@ def main():
     if len(sys.argv) == 1:
         parser.print_help(sys.stderr)
         sys.exit(0)
-    if os.path.isfile(LOGGING_CONF):
-        info(f"Logging configuration set from {LOGGING_CONF}")
+    if not os.path.isfile(LOGGING_CONF):
+        info(f"Logging configuration file {LOGGING_CONF} not found")
+    else:
         logging.config.fileConfig(LOGGING_CONF, disable_existing_loggers=False)
     kwargs = vars(parser.parse_args())
     kwargs.pop('func')(**kwargs)

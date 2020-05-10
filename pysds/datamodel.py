@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 """Data Model"""
+import base64
 
 from sqlalchemy import Column, Integer, String, LargeBinary
+
 from pysds.database import Base
 
 
@@ -17,7 +19,7 @@ class User(Base):
     privkey = Column(LargeBinary)
 
     def __repr__(self):
-        return "<User(%s, %s, %s, %s)>" % (self.sid, self.uid, self.name, self.email)
+        return f"User({self.sid}, {self.name}, {self.uid}, {self.email}, {base64.b64encode(self.pubkey).decode()})"
 
 
 class Dataset(Base):
@@ -26,12 +28,11 @@ class Dataset(Base):
     sid = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String, index=True, unique=True)
     name = Column(String)   # should be a fully qualified name like com.myorg.data.wheather.rain.2019
-    meta = Column(String)   # metadata
-    owner = Column(String)  # UID of owner
+    owner = Column(String)  # UID of owner when imported
     file = Column(String)
 
     def __repr__(self):
-        return "<Dataset(%s, %s, %s, %s)>" % (self.sid, self.uid, self.name, self.file)
+        return f"Dataset({self.sid}, {self.uid}, {self.name}, {self.owner}, {self.file})"
 
 
 class Token(Base):
@@ -43,4 +44,4 @@ class Token(Base):
     dataset = Column(String)  # UID of dataset
 
     def __repr__(self):
-        return "<Token(%s, %s, %s)>" % (self.sid, self.uid, self.name)
+        return f"Token({self.sid}, {self.uid}, {self.name})"

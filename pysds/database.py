@@ -7,13 +7,12 @@ import os
 from typing import Any
 
 import sqlalchemy
+# https://github.com/alecthomas/injector
+from injector import inject, singleton
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from pysds.config import Config
-
-# https://github.com/alecthomas/injector
-from injector import inject
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +20,10 @@ Base = declarative_base()
 
 
 class Database:
+    @singleton
     @inject
     def __init__(self, config: Config):
+        logger.debug(f"injected: {config}")
         self.dburl = config.dburl
         if config.setup:
             if os.path.isfile(config.dburl.replace('sqlite://', '')):

@@ -5,7 +5,6 @@ import configparser
 import logging
 import os
 
-
 CONFIG_PATH = os.path.expanduser(os.getenv('SDS_CONFIG_PATH', '~/.sds'))
 CONFIG_FILE = "/sds.ini"
 # TODO: temporary value

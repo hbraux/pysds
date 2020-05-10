@@ -65,7 +65,7 @@ class TestCrypto(unittest.TestCase):
     def test_write_read(self):
         crypto = Crypto(secret=uuid.uuid4().bytes)
         line = 'some line to encrypt'
-        tstfile = ROOT_DIR + "/crypto.sds"
+        tstfile = ROOT_DIR + "/../target/crypto.sds"
         with open(tstfile, "wb") as wio:
             crypto.write(wio, line)
         with open(tstfile, "rb") as rio:

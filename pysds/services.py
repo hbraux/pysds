@@ -4,9 +4,9 @@
 import base64
 import binascii
 import json
-import uuid
-import os
 import logging
+import os
+import uuid
 from typing import List, Union
 
 from injector import inject, Injector
@@ -47,11 +47,11 @@ class Service:
 
 
 class UserService(Service):
-
     @inject
-    def __init__(self, database: Database, config: Config):
+    def __init__(self, config: Config, database: Database):
         self.database = database
         self.config = config
+        logger.debug(f"injected: {config} {database}")
         self.admin = self.create_admin() if config.setup else self.database.get(User, User.sid == 1)
 
     def create_admin(self) -> Union[User, None]:
@@ -59,8 +59,7 @@ class UserService(Service):
         crypto = Crypto()
         crypto.genkeys(self.config.keylen)
         username = os.environ.get('USER')
-        email = username + "@admin"
-        admin = User(uid=str(uuid4), name=username, email=email, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        admin = User(uid=str(uuid4), name=username, email="@admin", pubkey=crypto.pubkey, privkey=crypto.privkey)
         try:
             self.database.add(admin)
         except Exception as e:
@@ -85,44 +84,67 @@ class UserService(Service):
 
 
 class DatasetService(Service):
-    DATASET_UUID = "5ab43121-a28c-4a38-8e9a-f5904f20ec05"
-    DATASET_VERSION = 1
-    DATASET_EXTENSION = '.sds'
+    UUID = uuid.UUID("5ab43121-a28c-4a38-8e9a-f5904f20ec05")
+    VERSION = 1 # max 255
+    EXTENSION = '.sds'
+    NAME_LEN = 128
+    OWNED = 'owned'
 
     @inject
-    def __init__(self, database: Database, config: Config, us: UserService):
-        self.database = database
+    def __init__(self, config: Config, userservice: UserService):
+        logger.debug(f"injected: {config} {userservice}")
         self.config = config
-        self.admin: User = us.admin
+        self.userservice = userservice
+        # TODO: injecting db create duplicates
+        self.database = userservice.database
 
-    def add(self, name: str, infile: str, meta: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
+    def add(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
         if self.database.get(Dataset, Dataset.name == name):
-            return self.failed("a dataset with name %s is already in the store")
+            return self.failed(f"a dataset with name %s is already in database")
         if not outfile:
-            outfile = os.path.abspath(os.path.splitext(infile)[0] + self.DATASET_EXTENSION)
+            outfile = os.path.abspath(os.path.splitext(infile)[0] + self.EXTENSION)
         if not ignore and os.path.isfile(outfile):
-            return self.failed("file {outfile} already exists")
-        uuid4 = uuid.uuid4()
-        crypto = Crypto(self.admin.pubkey, self.admin.privkey, secret=uuid4.bytes)
+            return self.failed(f"file {outfile} already exists")
+        dsid = uuid.uuid4()
+        crypto = Crypto(self.userservice.admin.pubkey, self.userservice.admin.privkey, secret=dsid.bytes)
         with open(outfile, "wb") as out:
-            out.write(uuid.UUID(self.DATASET_UUID).bytes)
-            out.write(self.DATASET_VERSION.to_bytes(2, 'little'))
-            out.write(uuid4.bytes)
-            out.write(uuid.UUID(self.admin.uid).bytes)
-            crypto.write(out, json.dumps(meta))
+            out.write(self.UUID.bytes)
+            out.write(bytes([self.VERSION]))
+            out.write(dsid.bytes)
+            out.write(uuid.UUID(self.userservice.admin.uid).bytes)
+            out.write(name.ljust(self.NAME_LEN, ' ').encode()[:self.NAME_LEN])
+            crypto.write(out, json.dumps(metadata))
             with open(infile, "r") as inp:
                 for line in inp:
                     crypto.write(out, line)
             logger.info(f"file {outfile} created")
-        ds = Dataset(uid=str(uuid4), name=name, meta="", owner=self.admin.uid, file=outfile)
+        ds = Dataset(uid=str(dsid), name=name, owner=self.OWNED, file=outfile)
         try:
             self.database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds
 
-    def add_external(self, reader) -> Dataset:
-        raise NotImplementedError()
+    def add_external(self, datafile) -> Union[Dataset, None]:
+        with open(datafile, "rb") as rio:
+            if rio.read(16) != self.UUID.bytes:
+                return self.failed(f"file {datafile} is not a Dataset")
+            version = rio.read(1)[0]
+            if version != self.VERSION:
+                return self.failed(f"file version {version} not supported")
+            dsid = str(uuid.UUID(bytes=rio.read(16)))
+            owner = str(uuid.UUID(bytes=rio.read(16)))
+            name = rio.read(self.NAME_LEN).decode().rstrip()
+        if self.database.get(Dataset, Dataset.uid == dsid):
+            return self.failed(f"Dataset {dsid} aready in database")
+        if not self.database.get(User, User.uid == owner):
+            return self.failed(f"User {owner} is unknown (must be registered)")
+        ds = Dataset(uid=str(dsid), name=name, owner=owner, file=datafile)
+        try:
+            self.database.add(ds)
+        except Exception as e:
+            return self.catched(e)
+        return ds
 
 
 class Token(Service):
@@ -139,13 +161,13 @@ class Services(Service):
     _ds = None
 
     @classmethod
-    def init(cls):
+    def init(cls) -> Union[User, None]:
         cls._injector.binder.bind(Config, to=Config(setup=True))
         try:
             cls._us = cls._injector.get(UserService)
         except Exception as e:
             return cls.catched(e)
-        return cls._us
+        return cls._us.admin
 
     @classmethod
     def user(cls) -> UserService:

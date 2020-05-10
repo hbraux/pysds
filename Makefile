@@ -1,5 +1,8 @@
 PYTHON = python3
 SDS_CONFIG_PATH = $(CURDIR)/target
+TEST_UUID = f6f8f779-e2f9-4fb5-8021-eabfa9248ade
+TEST_PUBKEY = MEgCQQCm0wfw5h/TYrRJwk0L4UPR7ZgGpswAxMS3V86vhzLA69WRnZzNJ24Wphw5/Yseb4E60Vzp0dW4elkuFR5N+R8TAgMBAAE=
+
 export SDS_CONFIG_PATH
 
 .DEFAULT_GOAL := help
@@ -21,7 +24,8 @@ test: ## run unit tests
 testcli:  ## run cli tests
 	rm -fr $(SDS_CONFIG_PATH)
 	pysds init
-	pysds register testuser test@email.org 8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=
+	pysds register testuser test@email.org $(TEST_UUID) $(TEST_PUBKEY)
 	pysds users
 	pysds add -i ork.mymank.wires tests/wires.csv
+	pysds import tests/wires.sds_
 

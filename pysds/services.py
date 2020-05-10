@@ -23,9 +23,8 @@ class Service:
     _error_msg = None
 
     @classmethod
-    def failed(cls, msg, *args, **kwargs) -> None:
-        logger.error(msg, *args, **kwargs)
-        # TODO: format args
+    def failed(cls, msg) -> None:
+        logger.error(msg)
         cls._error_msg = msg
         return None
 
@@ -102,7 +101,7 @@ class DatasetService(Service):
         if not outfile:
             outfile = os.path.abspath(os.path.splitext(infile)[0] + self.DATASET_EXTENSION)
         if not ignore and os.path.isfile(outfile):
-            return self.failed("file %s already exists", outfile)
+            return self.failed("file {outfile} already exists")
         uuid4 = uuid.uuid4()
         crypto = Crypto(self.admin.pubkey, self.admin.privkey, secret=uuid4.bytes)
         with open(outfile, "wb") as out:
@@ -114,7 +113,7 @@ class DatasetService(Service):
             with open(infile, "r") as inp:
                 for line in inp:
                     crypto.write(out, line)
-            logger.info("file %s created", outfile)
+            logger.info(f"file {outfile} created")
         ds = Dataset(uid=str(uuid4), name=name, meta="", owner=self.admin.uid, file=outfile)
         try:
             self.database.add(ds)
@@ -146,6 +145,7 @@ class Services(Service):
             cls._us = cls._injector.get(UserService)
         except Exception as e:
             return cls.catched(e)
+        return cls._us
 
     @classmethod
     def user(cls) -> UserService:
@@ -156,5 +156,5 @@ class Services(Service):
     @classmethod
     def dataset(cls) -> DatasetService:
         if not cls._ds:
-            cls._ds = cls._injector.get(Dataset)
+            cls._ds = cls._injector.get(DatasetService)
         return cls._ds

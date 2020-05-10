@@ -5,15 +5,15 @@
 
 from setuptools import setup, find_packages
 
-from pysyd.__init__ import __version__
+from pysds.__init__ import __version__
 
 setup(
-    name='pysyd',
+    name='pysds',
     include_package_data=True,
-    packages=find_packages(include=['pysyd']),
+    packages=find_packages(include=['pysds']),
     version=__version__,
     description="Python SYD",
-    entry_points={'console_scripts': ['pysyd=pysyd.cli:main'], },
+    entry_points={'console_scripts': ['pysds=pysds.cli:main'], },
     install_requires=['rsa', 'sqlalchemy', 'pycryptodome', 'injector'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest'],

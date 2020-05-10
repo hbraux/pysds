@@ -5,9 +5,9 @@ import unittest
 
 from injector import Injector
 
-from pysyd.config import Config
-from pysyd.datamodel import Dataset
-from pysyd.services import DatasetService
+from pysds.config import Config
+from pysds.datamodel import Dataset
+from pysds.services import DatasetService
 from test_config import config4test
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))

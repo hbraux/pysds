@@ -20,8 +20,8 @@ test: ## run unit tests
 
 testcli:  ## run cli tests
 	rm -fr $(PYSYD_CONFIG_PATH)
-	pysyd init
-	pysyd register testuser test@email.org 8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=
-	pysyd users
-	pysyd add tests/wires.csv
+	pysds init
+	pysds register testuser test@email.org 8a88e12a-98d6-4c1c-9850-d3cf5b31ca8a MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=
+	pysds users
+	pysds add tests/wires.csv
 

@@ -5,7 +5,7 @@ import os
 import unittest
 import uuid
 
-from pysyd.crypto import Crypto, CryptoError
+from pysds.crypto import Crypto, CryptoError
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = base64.b64decode(

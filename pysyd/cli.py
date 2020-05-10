@@ -2,16 +2,16 @@
 # -*- coding: utf-8 -*-
 
 """Command Line Interface"""
+import argparse
 import json
+import logging.config
 import os
 import sys
-import argparse
-import logging.config
 import uuid
 from json import JSONDecodeError
 
-from pysyd.services import Services
 from pysyd.__init__ import __version__
+from pysyd.services import Services
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
@@ -61,10 +61,10 @@ def list_users():
         print(u)
 
 
-def add_dataset(name, inputfile, outputfile, metadatafile):
+def add_dataset(name, inputfile, outputfile, metadatafile, ignore):
     service = Services.dataset()
     meta = to_json(metadatafile.readlines() if metadatafile else '{}')
-    if not service.add(name, inputfile.name, outputfile, meta):
+    if not service.add(name, inputfile.name, outputfile, meta, ignore=ignore):
         die(service.errormsg())
 
 
@@ -85,7 +85,7 @@ def main():
     sp2.set_defaults(func=register_user)
     sp2.add_argument('username')
     sp2.add_argument('email')
-    sp2.add_argument('uuid', dest='uid')
+    sp2.add_argument('uid')
     sp2.add_argument('pubkey')
 
     sp3 = subparsers.add_parser("users")
@@ -96,7 +96,7 @@ def main():
     sp4.add_argument('name')
     sp4.add_argument('-o', '--outputfile', help="encoded file path")
     sp4.add_argument('-m', '--metadatafile', type=argparse.FileType('r'))
-    sp4.add_argument('-f', '--force', action='store_true')
+    sp4.add_argument('-i', '--ignore', action='store_true')
     sp4.add_argument('inputfile', type=argparse.FileType('rb'))
 
     sp5 = subparsers.add_parser("import", help="import an internal dataset")

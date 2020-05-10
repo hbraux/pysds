@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
+import base64
 import logging.config
 import os
 import unittest
-import base64
 import uuid
 
 from pysyd.crypto import Crypto, CryptoError
@@ -71,9 +71,6 @@ class TestCrypto(unittest.TestCase):
         with open(tstfile, "rb") as rio:
             rline = crypto.read(rio)
         self.assertEqual(line, rline)
-
-
-
 
 
 

@@ -88,7 +88,7 @@ class UserService(Service):
 class DatasetService(Service):
     DATASET_UUID = "5ab43121-a28c-4a38-8e9a-f5904f20ec05"
     DATASET_VERSION = 1
-    DATASET_EXTENSION = '.syd'
+    DATASET_EXTENSION = '.sds'
 
     @inject
     def __init__(self, database: Database, config: Config, us: UserService):

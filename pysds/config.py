@@ -6,8 +6,8 @@ import logging
 import os
 
 
-CONFIG_PATH = os.path.expanduser(os.getenv('SDS_CONFIG_PATH', '~/.syd'))
-CONFIG_FILE = "/syd.ini"
+CONFIG_PATH = os.path.expanduser(os.getenv('SDS_CONFIG_PATH', '~/.sds'))
+CONFIG_FILE = "/sds.ini"
 # TODO: temporary value
 DEFAULT_KEY_LEN = 512
 

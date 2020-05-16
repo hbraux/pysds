@@ -77,7 +77,7 @@ def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
     print(dataset)
 
 
-def add_dataset(datafile):
+def load_dataset(datafile):
     service = Services.dataset()
     dataset = service.add(datafile.name)
     if not dataset:
@@ -110,8 +110,8 @@ def main():
     sp4.add_argument('-i', '--ignore', action='store_true', help="ignore existing files or datasets")
     sp4.add_argument('inputfile', type=argparse.FileType('rb'))
 
-    sp5 = subparsers.add_parser("add", help="add an external dataset")
-    sp5.set_defaults(func=add_dataset)
+    sp5 = subparsers.add_parser("load", help="load an external dataset")
+    sp5.set_defaults(func=load_dataset)
     sp5.add_argument('datafile', type=argparse.FileType('rb'))
 
     parser.add_argument('--version', action='version', version="%(prog)s " + __version__)

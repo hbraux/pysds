@@ -125,7 +125,7 @@ class DatasetService(Service):
             return self.catched(e)
         return ds
 
-    def add(self, datafile) -> Union[Dataset, None]:
+    def load(self, datafile) -> Union[Dataset, None]:
         with open(datafile, "rb") as rio:
             if rio.read(16) != self.UUID.bytes:
                 return self.failed(f"file {datafile} is not a Dataset")

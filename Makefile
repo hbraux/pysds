@@ -26,6 +26,6 @@ testcli:  ## run cli tests
 	pysds init
 	pysds register testuser test@email.org $(TEST_UUID) $(TEST_PUBKEY)
 	pysds users
-	pysds add -i ork.mymank.wires tests/wires.csv
-	pysds import tests/wires.sds_
+	pysds import -i ork.mymank.wires tests/wires.csv
+	pysds load tests/wires.sds_
 

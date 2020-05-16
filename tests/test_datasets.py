@@ -34,9 +34,9 @@ class TestDatasets(unittest.TestCase):
         self.assertTrue(os.path.isfile(ROOT_DIR + "/wires.sds"))
         self.assertEqual(ds.owner, DatasetService.OWNED)
 
-    def test_add(self):
+    def test_load(self):
         sdsfile = ROOT_DIR + "/wires.sds_"
-        ds = self.service.add(sdsfile)
+        ds = self.service.load(sdsfile)
         self.assertEqual(Dataset, type(ds))
         self.assertNotEqual(ds.owner, DatasetService.OWNED)
 

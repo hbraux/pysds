@@ -2,9 +2,10 @@
 pysds
 ======
 
-# Badges doc here https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#adding-a-workflow-status-badge-to-your-repository
+.. image:: https://github.com/hbraux/pysds/workflows/ci/badge.svg
+    :alt: Build status
 
-https://github.com/hbraux/pysds/workflows/ci/badge.svg
+.. image:: https://github.com/hbraux/pysds/coverage.svg
 
 
 

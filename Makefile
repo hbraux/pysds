@@ -21,6 +21,7 @@ develop: ## install module in development mode
 test: ## run unit tests
 	PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=tests coverage run --source=pysds -m pytest -v
 	coverage report
+	coverage-badge -o coverage.svg
 
 testcli:  ## run cli tests
 	rm -fr $(SDS_CONFIG_PATH)

@@ -3,3 +3,4 @@ pycryptodome
 rsa
 sqlalchemy
 coverage
+coverage-badge

@@ -41,5 +41,3 @@ class TestUsers(unittest.TestCase):
         user = self.service.add(testuid, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)
         self.assertEqual("Error: Incorrect padding", self.service.errormsg())
-
-

@@ -39,4 +39,3 @@ class TestConfig(unittest.TestCase):
 
 def config4test():
     return Config(cfgpath=TEST_CFG_PATH, dburl=TEST_MEM_URL, keylen=256, setup=True)
-

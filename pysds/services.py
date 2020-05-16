@@ -85,7 +85,7 @@ class UserService(Service):
 
 class DatasetService(Service):
     UUID = uuid.UUID("5ab43121-a28c-4a38-8e9a-f5904f20ec05")
-    VERSION = 1 # max 255
+    VERSION = 1  # max 255
     EXTENSION = '.sds'
     NAME_LEN = 128
     OWNED = 'owned'
@@ -100,7 +100,7 @@ class DatasetService(Service):
 
     def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
         if self.database.get(Dataset, Dataset.name == name):
-            return self.failed(f"a dataset with name %s is already in local store")
+            return self.failed(f"a dataset with name {name} is already in local store")
         if not outfile:
             outfile = os.path.abspath(os.path.splitext(infile)[0] + self.EXTENSION)
         if not ignore and os.path.isfile(outfile):

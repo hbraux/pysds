@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Config:
-    def __init__(self, cfgpath=CONFIG_PATH, keylen=DEFAULT_KEY_LEN , dburl=None, setup=False):
+    def __init__(self, cfgpath=CONFIG_PATH, keylen=DEFAULT_KEY_LEN, dburl=None, setup=False):
         self.cfgpath = cfgpath
         self.keylen = keylen
         self.setup = setup
@@ -41,8 +41,3 @@ class Config:
             f.write("[DEFAULT]\n")
             f.write("DatabaseUrl = " + self.dburl + "\n")
         logger.info("file %s created", cfgfile)
-
-
-
-
-

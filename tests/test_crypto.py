@@ -71,6 +71,3 @@ class TestCrypto(unittest.TestCase):
         with open(tstfile, "rb") as rio:
             rline = crypto.read(rio)
         self.assertEqual(line, rline)
-
-
-

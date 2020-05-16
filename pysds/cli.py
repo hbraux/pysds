@@ -36,14 +36,14 @@ def info(msg):
 def to_uuid(s: str) -> uuid.UUID:
     try:
         return uuid.UUID(s)
-    except ValueError as e:
+    except ValueError:
         die(f"{s} is not a UUID")
 
 
 def to_json(s: str) -> dict:
     try:
         return json.loads(s)
-    except (TypeError, JSONDecodeError) as e:
+    except (TypeError, JSONDecodeError):
         die(f"{s} is not a JSON expr")
 
 

@@ -9,7 +9,6 @@ pysds
     :target: https://github.com/hbraux/pysds/actions
 
 .. |badge2| image:: https://raw.githubusercontent.com/hbraux/pysds/master/coverage.svg
-    :width: 49 %
     :alt: Coverage
 
 

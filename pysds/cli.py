@@ -102,15 +102,15 @@ def main():
     sp3 = subparsers.add_parser("users")
     sp3.set_defaults(func=list_users)
 
-    sp4 = subparsers.add_parser("import", help="import a dataset")
+    sp4 = subparsers.add_parser("import", help="import a file (create a DataSet)")
     sp4.set_defaults(func=import_dataset)
     sp4.add_argument('name')
     sp4.add_argument('-o', '--outputfile', help="encoded file path")
     sp4.add_argument('-m', '--metadatafile', type=argparse.FileType('r'))
-    sp4.add_argument('-i', '--ignore', action='store_true', help="ignore existing files or datasets")
+    sp4.add_argument('-i', '--ignore', action='store_true', help="ignore existing files or DataSet")
     sp4.add_argument('inputfile', type=argparse.FileType('rb'))
 
-    sp5 = subparsers.add_parser("load", help="load an external dataset")
+    sp5 = subparsers.add_parser("load", help="load an external DataSet")
     sp5.set_defaults(func=load_dataset)
     sp5.add_argument('datafile', type=argparse.FileType('rb'))
 

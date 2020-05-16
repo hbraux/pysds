@@ -100,7 +100,7 @@ class DatasetService(Service):
 
     def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
         if self.database.get(Dataset, Dataset.name == name):
-            return self.failed(f"a dataset with name %s is already in database")
+            return self.failed(f"a dataset with name %s is already in local store")
         if not outfile:
             outfile = os.path.abspath(os.path.splitext(infile)[0] + self.EXTENSION)
         if not ignore and os.path.isfile(outfile):
@@ -128,15 +128,15 @@ class DatasetService(Service):
     def load(self, datafile) -> Union[Dataset, None]:
         with open(datafile, "rb") as rio:
             if rio.read(16) != self.UUID.bytes:
-                return self.failed(f"file {datafile} is not a Dataset")
+                return self.failed(f"{datafile} is not a DataSet file")
             version = rio.read(1)[0]
             if version != self.VERSION:
-                return self.failed(f"file version {version} not supported")
+                return self.failed(f"File version {version} not supported")
             dsid = str(uuid.UUID(bytes=rio.read(16)))
             owner = str(uuid.UUID(bytes=rio.read(16)))
             name = rio.read(self.NAME_LEN).decode().rstrip()
         if self.database.get(Dataset, Dataset.uid == dsid):
-            return self.failed(f"Dataset {dsid} aready in database")
+            return self.failed(f"Dataset {dsid} already in local store")
         if not self.database.get(User, User.uid == owner):
             return self.failed(f"User {owner} is unknown (must be registered)")
         ds = Dataset(uid=str(dsid), name=name, owner=owner, file=datafile)

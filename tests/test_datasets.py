@@ -15,6 +15,8 @@ ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_UUID = "f6f8f779-e2f9-4fb5-8021-eabfa9248ade"
 TEST_PUBKEY = "MEgCQQCm0wfw5h/TYrRJwk0L4UPR7ZgGpswAxMS3V86vhzLA69WRnZzNJ24Wphw5/Yseb4E60Vzp0dW4elkuFR5N+R8TAgMBAAE="
 
+lastuid = None
+
 
 class TestDatasets(unittest.TestCase):
     service: DatasetService = None
@@ -35,9 +37,21 @@ class TestDatasets(unittest.TestCase):
         self.assertEqual(ds.owner, DatasetService.OWNED)
 
     def test_load(self):
+        global lastuid
         sdsfile = ROOT_DIR + "/wires.sds_"
         ds = self.service.load(sdsfile)
         self.assertEqual(Dataset, type(ds))
         self.assertNotEqual(ds.owner, DatasetService.OWNED)
+        lastuid = ds.uid
 
+    def test_load_exists(self):
+        sdsfile = ROOT_DIR + "/wires.sds_"
+        self.assertIsNone(self.service.load(sdsfile))
+        self.assertTrue(self.service.failure())
+        self.assertEqual(f"Dataset {lastuid} already in local store", self.service.errormsg())
 
+    def test_load_failured(self):
+        sdsfile = ROOT_DIR + "/sample.py"
+        self.assertIsNone(self.service.load(sdsfile))
+        self.assertTrue(self.service.failure())
+        self.assertEqual(f"{sdsfile} is not a DataSet file", self.service.errormsg())

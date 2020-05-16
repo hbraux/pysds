@@ -2,17 +2,9 @@
 pysds
 ======
 
+# Badges doc here https://help.github.com/en/actions/configuring-and-managing-workflows/configuring-a-workflow#adding-a-workflow-status-badge-to-your-repository
 
-.. image:: https://img.shields.io/travis/hbraux/pysds.svg
-        :target: https://travis-ci.org/hbraux/pysds
-
-.. image:: https://readthedocs.org/projects/pysds/badge/?version=latest
-        :target: https://pysds.readthedocs.io/en/latest/?badge=latest
-        :alt: Documentation Status
-
-.. image:: https://codecov.io/gh/hbraux/pysds/branch/master/graph/badge.svg
-        :target: https://codecov.io/gh/hbraux/pysds
-        :alt: Coverage
+https://github.com/hbraux/pysds/workflows/ci/badge.svg
 
 
 

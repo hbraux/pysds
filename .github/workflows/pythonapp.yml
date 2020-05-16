@@ -35,4 +35,5 @@ jobs:
       run: |
         PYTHONPATH=tests/ pytest -v .
     - name: CLI
-      run: make test cli
+      run: |
+        tests/test_cli.sh

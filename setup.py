@@ -16,7 +16,7 @@ setup(
     entry_points={'console_scripts': ['pysds=pysds.cli:main'], },
     install_requires=['rsa', 'sqlalchemy', 'pycryptodome', 'injector'],
     setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    tests_require=['pytest', 'coverage'],
     test_suite='tests',
     zip_safe=False
 )

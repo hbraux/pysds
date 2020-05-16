@@ -17,24 +17,26 @@ TEST_PUBKEY = "MEgCQQCm0wfw5h/TYrRJwk0L4UPR7ZgGpswAxMS3V86vhzLA69WRnZzNJ24Wphw5/
 
 
 class TestDatasets(unittest.TestCase):
+    service: DatasetService = None
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls) -> None:
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
         injector = Injector()
         injector.binder.bind(Config, to=config4test())
-        self.service: DatasetService = injector.get(DatasetService)
-        self.service.userservice.add(TEST_UUID, "testuser", "test@email.org", TEST_PUBKEY)
+        cls.service = injector.get(DatasetService)
+        cls.service.userservice.add(TEST_UUID, "testuser", "test@email.org", TEST_PUBKEY)
 
-    def test_add_csv(self):
+    def test_import_csv(self):
         csvfile = ROOT_DIR + "/wires.csv"
-        ds = self.service.add("test", csvfile, {}, ignore=True)
+        ds = self.service.imp("test", csvfile, {}, ignore=True)
         self.assertEqual(Dataset, type(ds))
         self.assertTrue(os.path.isfile(ROOT_DIR + "/wires.sds"))
         self.assertEqual(ds.owner, DatasetService.OWNED)
 
-    def test_import(self):
+    def test_add(self):
         sdsfile = ROOT_DIR + "/wires.sds_"
-        ds = self.service.add_external(sdsfile)
+        ds = self.service.add(sdsfile)
         self.assertEqual(Dataset, type(ds))
         self.assertNotEqual(ds.owner, DatasetService.OWNED)
 

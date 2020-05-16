@@ -98,7 +98,7 @@ class DatasetService(Service):
         # TODO: injecting db create duplicates
         self.database = userservice.database
 
-    def add(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
+    def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
         if self.database.get(Dataset, Dataset.name == name):
             return self.failed(f"a dataset with name %s is already in database")
         if not outfile:
@@ -125,7 +125,7 @@ class DatasetService(Service):
             return self.catched(e)
         return ds
 
-    def add_external(self, datafile) -> Union[Dataset, None]:
+    def add(self, datafile) -> Union[Dataset, None]:
         with open(datafile, "rb") as rio:
             if rio.read(16) != self.UUID.bytes:
                 return self.failed(f"file {datafile} is not a Dataset")

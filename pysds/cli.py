@@ -66,20 +66,20 @@ def list_users():
         print(u)
 
 
-def add_dataset(name, inputfile, outputfile, metadatafile, ignore):
+def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
     service = Services.dataset()
     meta = to_json(metadatafile.readlines() if metadatafile else '{}')
     if len(name) > 128:
         die("Max length for name is 128")
-    dataset = service.add(name, inputfile.name, outputfile, meta, ignore=ignore)
+    dataset = service.imp(name, inputfile.name, outputfile, meta, ignore=ignore)
     if not dataset:
         die(service.errormsg())
     print(dataset)
 
 
-def import_dataset(datafile):
+def add_dataset(datafile):
     service = Services.dataset()
-    dataset = service.add_external(datafile.name)
+    dataset = service.add(datafile.name)
     if not dataset:
         die(service.errormsg())
     print(dataset)
@@ -102,16 +102,16 @@ def main():
     sp3 = subparsers.add_parser("users")
     sp3.set_defaults(func=list_users)
 
-    sp4 = subparsers.add_parser("add", help="add an internal dataset")
-    sp4.set_defaults(func=add_dataset)
+    sp4 = subparsers.add_parser("import", help="import a dataset")
+    sp4.set_defaults(func=import_dataset)
     sp4.add_argument('name')
     sp4.add_argument('-o', '--outputfile', help="encoded file path")
     sp4.add_argument('-m', '--metadatafile', type=argparse.FileType('r'))
     sp4.add_argument('-i', '--ignore', action='store_true', help="ignore existing files or datasets")
     sp4.add_argument('inputfile', type=argparse.FileType('rb'))
 
-    sp5 = subparsers.add_parser("import", help="import an internal dataset")
-    sp5.set_defaults(func=import_dataset)
+    sp5 = subparsers.add_parser("add", help="add an external dataset")
+    sp5.set_defaults(func=add_dataset)
     sp5.add_argument('datafile', type=argparse.FileType('rb'))
 
     parser.add_argument('--version', action='version', version="%(prog)s " + __version__)

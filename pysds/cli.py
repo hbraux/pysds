@@ -79,7 +79,7 @@ def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
 
 def load_dataset(datafile):
     service = Services.dataset()
-    dataset = service.add(datafile.name)
+    dataset = service.load(datafile.name)
     if not dataset:
         die(service.errormsg())
     print(dataset)

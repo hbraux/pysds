@@ -2,12 +2,11 @@
 pysds
 ======
 
-.. image:: https://github.com/hbraux/pysds/workflows/ci/badge.svg
+.. image:: https://github.com/hbraux/pysds/workflows/build/badge.svg
     :alt: Build status
 
-.. image:: https://github.com/hbraux/pysds/coverage.svg
-
-
+.. image:: https://raw.githubusercontent.com/hbraux/pysds/master/coverage.svg
+    :alt: Coverage
 
 Secured DataSets
 

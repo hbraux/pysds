@@ -1,0 +1,4 @@
+injector
+pycryptodome
+rsa
+sqlalchemy

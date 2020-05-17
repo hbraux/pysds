@@ -2,7 +2,8 @@
 
 import base64
 
-from sqlalchemy import Column, Integer, String, LargeBinary
+from sqlalchemy import Column, Integer, String, LargeBinary, DateTime
+from sqlalchemy.sql import func
 
 from pysds.database import Base
 
@@ -29,11 +30,16 @@ class Dataset(Base):
     sid = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String, index=True, unique=True)
     name = Column(String)   # should be a fully qualified name like com.myorg.data.wheather.rain.2019
-    owner = Column(String)  # UUID of owner when imported
+    owner = Column(String)  # UUID of owner when imported otherwise owned
     file = Column(String)
+
+    OWNED = 'owned'
 
     def __repr__(self):
         return f"Dataset({self.sid}, {self.uid}, {self.name}, {self.owner}, {self.file})"
+
+    def is_owned(self) -> bool:
+        return self.owner == self.OWNED
 
 
 class Token(Base):
@@ -43,7 +49,13 @@ class Token(Base):
     sid = Column(Integer, primary_key=True, autoincrement=True)
     uid = Column(String, index=True, unique=True)
     name = Column(String)
-    dataset = Column(String)  # UUID of dataset
+    dataset = Column(String)    # UUID of dataset
+    requester = Column(String)  # UUID of requester
+    granter = Column(String)    # UUID of granter
+    request_dt = Column(DateTime, default=func.now())
+    grant_dt = Column(DateTime)
+    grant_status = Column(Integer, default=0)
+    locker = Column(LargeBinary)
 
     def __repr__(self):
         return f"Token({self.sid}, {self.uid}, {self.name})"

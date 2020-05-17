@@ -34,14 +34,14 @@ class TestDatasets(unittest.TestCase):
         ds = self.service.imp("test", csvfile, {}, ignore=True)
         self.assertEqual(Dataset, type(ds))
         self.assertTrue(os.path.isfile(ROOT_DIR + "/wires.sds"))
-        self.assertEqual(ds.owner, DatasetService.OWNED)
+        self.assertEqual(ds.owner, Dataset.OWNED)
 
     def test_load(self):
         global lastuid
         sdsfile = ROOT_DIR + "/wires.sds_"
         ds = self.service.load(sdsfile)
         self.assertEqual(Dataset, type(ds))
-        self.assertNotEqual(ds.owner, DatasetService.OWNED)
+        self.assertNotEqual(ds.owner, Dataset.OWNED)
         lastuid = ds.uid
 
     def test_load_exists(self):
@@ -50,7 +50,7 @@ class TestDatasets(unittest.TestCase):
         self.assertTrue(self.service.failure())
         self.assertEqual(f"Dataset {lastuid} already in local store", self.service.errormsg())
 
-    def test_load_failured(self):
+    def test_load_failure(self):
         sdsfile = ROOT_DIR + "/sample.py"
         self.assertIsNone(self.service.load(sdsfile))
         self.assertTrue(self.service.failure())

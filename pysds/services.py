@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """Data Model"""
-import base64
 import binascii
 import json
 import logging
@@ -14,7 +13,7 @@ from injector import inject
 from pysds.config import Config
 from pysds.crypto import Crypto
 from pysds.database import Database
-from pysds.datamodel import User, Dataset
+from pysds.datamodel import *
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +87,6 @@ class DatasetService(Service):
     VERSION = 1  # max 255
     EXTENSION = '.sds'
     NAME_LEN = 128
-    OWNED = 'owned'
 
     @inject
     def __init__(self, config: Config, userservice: UserService):
@@ -97,6 +95,7 @@ class DatasetService(Service):
         self.userservice = userservice
         # TODO: injecting db create duplicates
         self.database = userservice.database
+        self.admin = userservice.admin
 
     def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
         if self.database.get(Dataset, Dataset.name == name):
@@ -118,7 +117,7 @@ class DatasetService(Service):
                 for line in inp:
                     crypto.write(out, line)
             logger.info(f"file {outfile} created")
-        ds = Dataset(uid=str(dsid), name=name, owner=self.OWNED, file=outfile)
+        ds = Dataset(uid=str(dsid), name=name, owner=Dataset.OWNED, file=outfile)
         try:
             self.database.add(ds)
         except Exception as e:
@@ -147,10 +146,25 @@ class DatasetService(Service):
         return ds
 
 
-class Token(Service):
+class TokenService(Service):
     TOKEN_UUID = "a6416f6a-eb43-4494-ab49-61c148e61d9c"
     TOKEN_VERSION = 1
 
-    def __init__(self, database: Database):
-        self.database = database
+    @inject
+    def __init__(self, datasetservice: DatasetService):
+        self.datasetservice = datasetservice
+        self.database = datasetservice.database
 
+    def create(self, uid: uuid.UUID = None, sid: int = None) -> Union[Dataset, None]:
+        ds = self.database.get(Dataset, Dataset.uid == uid) if uid else self.database.get(Dataset, Dataset.sid == sid)
+        if not ds:
+            return self.failed(f"DataSet {uid or sid} is unknown")
+        if ds.is_owned():
+            return self.failed(f"DataSet {uid or sid} is owned")
+        token = Token(uid=str(uuid.uuid4()), name=f"DataSet {ds.name}", dataset=ds.uid,
+                      requester=self.datasetservice.admin.uid, granter=ds.owner)
+        try:
+            self.database.add(token)
+        except Exception as e:
+            return self.catched(e)
+        return token

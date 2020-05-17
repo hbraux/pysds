@@ -86,6 +86,17 @@ def load_dataset(datafile):
     print(dataset)
 
 
+def create_token(uid):
+    service = Injector().get(TokenService)
+    if uid.isdigit():
+        token = service.create(sid=int(uid))
+    else:
+        token = service.create(uid=to_uuid(uid))
+    if not token:
+        die(service.errormsg())
+    print(token)
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(title='spcommands')
@@ -114,6 +125,10 @@ def main():
     sp5 = subparsers.add_parser("load", help="load an external DataSet")
     sp5.set_defaults(func=load_dataset)
     sp5.add_argument('datafile', type=argparse.FileType('rb'))
+
+    sp6 = subparsers.add_parser("request", help="request access to a DataSet")
+    sp6.set_defaults(func=create_token)
+    sp6.add_argument('uid', help='DataSet UID or Short Id')
 
     parser.add_argument('--version', action='version', version="%(prog)s " + __version__)
 

@@ -9,7 +9,7 @@ import os
 import uuid
 from typing import List, Union
 
-from injector import inject, Injector
+from injector import inject
 
 from pysds.config import Config
 from pysds.crypto import Crypto
@@ -154,29 +154,3 @@ class Token(Service):
     def __init__(self, database: Database):
         self.database = database
 
-
-class Services(Service):
-    _injector = Injector()
-    _us = None
-    _ds = None
-
-    @classmethod
-    def init(cls) -> Union[User, None]:
-        cls._injector.binder.bind(Config, to=Config(setup=True))
-        try:
-            cls._us = cls._injector.get(UserService)
-        except Exception as e:
-            return cls.catched(e)
-        return cls._us.admin
-
-    @classmethod
-    def user(cls) -> UserService:
-        if not cls._us:
-            cls._us = cls._injector.get(UserService)
-        return cls._us
-
-    @classmethod
-    def dataset(cls) -> DatasetService:
-        if not cls._ds:
-            cls._ds = cls._injector.get(DatasetService)
-        return cls._ds

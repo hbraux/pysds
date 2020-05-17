@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-"""Database Layer"""
-
 import logging
 import os
 from typing import Any
@@ -20,6 +18,7 @@ Base = declarative_base()
 
 
 class Database:
+    """Small database wrapper on top of SQL Alchemy"""
     @singleton
     @inject
     def __init__(self, config: Config):

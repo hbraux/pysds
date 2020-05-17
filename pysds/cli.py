@@ -3,15 +3,14 @@
 
 """Command Line Interface"""
 import argparse
-import json
 import logging.config
-import os
 import sys
-import uuid
 from json import JSONDecodeError
 
+from injector import Injector
+
 from pysds.__init__ import __version__
-from pysds.services import Services
+from pysds.services import *
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
@@ -48,26 +47,28 @@ def to_json(s: str) -> dict:
 
 
 def init_app():
-    admin = Services.init()
-    if not admin:
-        die(Services.errormsg())
-    print(admin)
+    injector = Injector()
+    injector.binder.bind(Config, to=Config(setup=True))
+    service = injector.get(UserService)
+    if not service:
+        die(service.errormsg())
+    print(service.admin)
 
 
 def register_user(username, email, uid, pubkey):
-    service = Services.user()
+    service = Injector().get(UserService)
     if not service.add(to_uuid(uid), username, email, pubkey):
         die(service.errormsg())
 
 
 def list_users():
-    service = Services.user()
+    service = Injector().get(UserService)
     for u in service.list():
         print(u)
 
 
 def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
-    service = Services.dataset()
+    service = Injector().get(DatasetService)
     meta = to_json(metadatafile.readlines() if metadatafile else '{}')
     if len(name) > 128:
         die("Max length for name is 128")
@@ -78,7 +79,7 @@ def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
 
 
 def load_dataset(datafile):
-    service = Services.dataset()
+    service = Injector().get(DatasetService)
     dataset = service.load(datafile.name)
     if not dataset:
         die(service.errormsg())

@@ -4,12 +4,10 @@ import logging.config
 import os
 import unittest
 
-from injector import Injector
-
-from pysds.config import Config
 from pysds.datamodel import Dataset
-from pysds.services import DatasetService
-from test_config import config4test
+from pysds.dataset_service import DatasetService
+from pysds.user_service import UserService
+from test_config import TestConfig
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_UUID = "f6f8f779-e2f9-4fb5-8021-eabfa9248ade"
@@ -24,10 +22,9 @@ class TestDatasets(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
-        injector = Injector()
-        injector.binder.bind(Config, to=config4test())
-        cls.service = injector.get(DatasetService)
-        cls.service.userservice.add(TEST_UUID, "testuser", "test@email.org", TEST_PUBKEY)
+        TestConfig.use()
+        cls.service = DatasetService()
+        UserService().add(TEST_UUID, "testuser", "test@email.org", TEST_PUBKEY)
 
     def test_import_csv(self):
         csvfile = ROOT_DIR + "/wires.csv"
@@ -51,7 +48,7 @@ class TestDatasets(unittest.TestCase):
         self.assertEqual(f"Dataset {lastuid} already in local store", self.service.errormsg())
 
     def test_load_failure(self):
-        sdsfile = ROOT_DIR + "/sample.py"
+        sdsfile = __file__
         self.assertIsNone(self.service.load(sdsfile))
         self.assertTrue(self.service.failure())
         self.assertEqual(f"{sdsfile} is not a DataSet file", self.service.errormsg())

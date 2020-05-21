@@ -16,9 +16,10 @@ class TestConfig(unittest.TestCase):
 
     def setUp(self):
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
+        Config.destroy()
 
     def test_setup(self):
-        self.do_clean()
+        self._clean()
         config = Config(cfgpath=TEST_CFG_PATH, setup=True)
         self.assertTrue(os.path.isfile(TEST_CFG_PATH + CONFIG_FILE))
         self.assertEqual(TEST_DB_URL, config.dburl)
@@ -32,10 +33,14 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(TEST_MEM_URL, config.dburl)
 
     @staticmethod
-    def do_clean():
+    def _clean():
         if os.path.isdir(TEST_CFG_PATH):
             shutil.rmtree(TEST_CFG_PATH)
 
+    @staticmethod
+    def use():
+        Config(cfgpath=TEST_CFG_PATH, dburl=TEST_MEM_URL, keylen=256, setup=True)
 
-def config4test():
-    return Config(cfgpath=TEST_CFG_PATH, dburl=TEST_MEM_URL, keylen=256, setup=True)
+
+
+

@@ -5,30 +5,28 @@ import os
 from typing import Any
 
 import sqlalchemy
-# https://github.com/alecthomas/injector
-from injector import inject, singleton
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from pysds.config import Config
+from pysds.singleton import Singleton
 
 logger = logging.getLogger(__name__)
 
 Base = declarative_base()
 
 
-class Database:
+class Database(metaclass=Singleton):
     """Small database wrapper on top of SQL Alchemy"""
-    @singleton
-    @inject
-    def __init__(self, config: Config):
-        logger.debug(f"injected: {config}")
-        self.dburl = config.dburl
-        if config.setup:
-            if os.path.isfile(config.dburl.replace('sqlite://', '')):
-                raise Exception("Database " + config.dburl + " already exists")
-            logger.info("Creating schema for %s", config.dburl)
-            engine = sqlalchemy.create_engine(config.dburl)
+
+    def __init__(self):
+        self.config = Config()
+        self.dburl = self.config.dburl
+        if self.config.setup:
+            if os.path.isfile(self.config.dburl.replace('sqlite://', '')):
+                raise Exception("Database " + self.dburl + " already exists")
+            logger.info("Creating schema for %s", self.dburl)
+            engine = sqlalchemy.create_engine(self.dburl)
             tables = Base.metadata.tables
             Base.metadata.create_all(engine, tables.values(), checkfirst=True)
             logger.debug("creating tables: " + ",".join(k for k in tables.keys()))

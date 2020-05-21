@@ -4,23 +4,19 @@ import os
 import unittest
 import uuid
 
-from injector import Injector
-
-from pysds.config import Config
 from pysds.datamodel import User
-from pysds.services import UserService
-from test_config import config4test
+from pysds.user_service import UserService
+from test_config import TestConfig
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
-class TestUsers(unittest.TestCase):
+class TestUserService(unittest.TestCase):
 
     def setUp(self):
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
-        injector = Injector()
-        injector.binder.bind(Config, to=config4test())
-        self.service = injector.get(UserService)
+        TestConfig.use()
+        self.service = UserService()
 
     def test_admin(self):
         self.assertIsNotNone(self.service.admin)

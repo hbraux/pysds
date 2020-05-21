@@ -5,8 +5,8 @@ from sqlalchemy import Column, Integer
 from pysds.database import Base
 
 
-class Sample(Base):
-    __tablename__ = 'sample'
+class DatabaseSample(Base):
+    __tablename__ = 'database_sample'
 
     sid = Column(Integer, primary_key=True, autoincrement=True)
 

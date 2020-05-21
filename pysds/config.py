@@ -5,6 +5,8 @@ import configparser
 import logging
 import os
 
+from pysds.singleton import Singleton
+
 CONFIG_PATH = os.path.expanduser(os.getenv('SDS_CONFIG_PATH', '~/.sds'))
 CONFIG_FILE = "/sds.ini"
 # TODO: temporary value
@@ -13,8 +15,10 @@ DEFAULT_KEY_LEN = 512
 logger = logging.getLogger(__name__)
 
 
-class Config:
-    def __init__(self, cfgpath=CONFIG_PATH, keylen=DEFAULT_KEY_LEN, dburl=None, setup=False):
+class Config(metaclass=Singleton):
+    """This singleton handles application configuration"""
+
+    def __init__(self, cfgpath=CONFIG_PATH, keylen=DEFAULT_KEY_LEN, setup=False, dburl=None):
         self.cfgpath = cfgpath
         self.keylen = keylen
         self.setup = setup

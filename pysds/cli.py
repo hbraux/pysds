@@ -3,14 +3,17 @@
 
 """Command Line Interface"""
 import argparse
+import json
 import logging.config
+import os
 import sys
+import uuid
 from json import JSONDecodeError
 
-from injector import Injector
-
 from pysds.__init__ import __version__
-from pysds.services import *
+from pysds.dataset_service import DatasetService
+from pysds.token_service import TokenService
+from pysds.user_service import UserService
 
 if sys.version_info[0] < 3 or sys.version_info[1] < 6:
     sys.stderr.write("Tool requires Python 3.6 or higher!\n")
@@ -47,28 +50,26 @@ def to_json(s: str) -> dict:
 
 
 def init_app():
-    injector = Injector()
-    injector.binder.bind(Config, to=Config(setup=True))
-    service = injector.get(UserService)
-    if not service:
+    service = UserService.init()
+    if service.failure():
         die(service.errormsg())
     print(service.admin)
 
 
 def register_user(username, email, uid, pubkey):
-    service = Injector().get(UserService)
+    service = UserService()
     if not service.add(to_uuid(uid), username, email, pubkey):
         die(service.errormsg())
 
 
 def list_users():
-    service = Injector().get(UserService)
+    service = UserService()
     for u in service.list():
         print(u)
 
 
 def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
-    service = Injector().get(DatasetService)
+    service = DatasetService()
     meta = to_json(metadatafile.readlines() if metadatafile else '{}')
     if len(name) > 128:
         die("Max length for name is 128")
@@ -79,7 +80,7 @@ def import_dataset(name, inputfile, outputfile, metadatafile, ignore):
 
 
 def load_dataset(datafile):
-    service = Injector().get(DatasetService)
+    service = DatasetService()
     dataset = service.load(datafile.name)
     if not dataset:
         die(service.errormsg())
@@ -87,11 +88,11 @@ def load_dataset(datafile):
 
 
 def create_token(uid):
-    service = Injector().get(TokenService)
+    service = TokenService()
     if uid.isdigit():
-        token = service.create(sid=int(uid))
+        token = service.create()
     else:
-        token = service.create(uid=to_uuid(uid))
+        token = service.create()
     if not token:
         die(service.errormsg())
     print(token)

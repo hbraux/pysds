@@ -20,9 +20,9 @@ class UserService(Service):
     def __init__(self):
         self.config = Config()
         self.database = Database()
-        self.admin = self.create_admin() if self.config.setup else self.database.get(User, User.sid == 1)
+        self.admin = self.database.get(User, User.sid == 1)
 
-    def create_admin(self) -> Union[User, None]:
+    def create_admin(self):
         uuid4 = uuid.uuid4()
         crypto = Crypto()
         crypto.genkeys(self.config.keylen)
@@ -33,7 +33,7 @@ class UserService(Service):
         except Exception as e:
             return self.catched(e)
         logger.info("Admin user created")
-        return admin
+        self.admin = admin
 
     def add(self, uid: uuid.UUID, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
@@ -49,4 +49,16 @@ class UserService(Service):
 
     def list(self) -> List[User]:
         return self.database.list(User)
+
+    @staticmethod
+    def init():
+        try:
+            Config.create()
+            Database.create()
+        except Exception as e:
+            return Service().catched(e)
+        service = UserService()
+        service.create_admin()
+        return service
+
 

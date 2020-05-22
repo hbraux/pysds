@@ -5,8 +5,6 @@ import logging
 import uuid
 from typing import Union
 
-from injector import inject
-
 from pysds.database import Database
 from pysds.datamodel import *
 from pysds.service import Service
@@ -19,7 +17,6 @@ class TokenService(Service):
     TOKEN_UUID = "a6416f6a-eb43-4494-ab49-61c148e61d9c"
     TOKEN_VERSION = 1
 
-    @inject
     def __init__(self):
         self.database = Database()
         self.admin = UserService().admin

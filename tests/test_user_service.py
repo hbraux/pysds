@@ -4,19 +4,22 @@ import os
 import unittest
 import uuid
 
+from pysds.config import Config
 from pysds.datamodel import User
 from pysds.user_service import UserService
-from test_config import TestConfig
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+TEST_CFG_PATH = os.path.abspath(ROOT_DIR + "/../target/")
 
 
 class TestUserService(unittest.TestCase):
+    service: UserService = None
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(cls):
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
-        TestConfig.use()
-        self.service = UserService()
+        Config.create(cfgpath=TEST_CFG_PATH, clean=True, dburl='sqlite:///:memory:')
+        cls.service = UserService.init()
 
     def test_admin(self):
         self.assertIsNotNone(self.service.admin)

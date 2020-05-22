@@ -19,19 +19,10 @@ Base = declarative_base()
 class Database(metaclass=Singleton):
     """Small database wrapper on top of SQL Alchemy"""
 
-    def __init__(self):
+    def __init__(self, engine=None):
         self.config = Config()
         self.dburl = self.config.dburl
-        if self.config.setup:
-            if os.path.isfile(self.config.dburl.replace('sqlite://', '')):
-                raise Exception("Database " + self.dburl + " already exists")
-            logger.info("Creating schema for %s", self.dburl)
-            engine = sqlalchemy.create_engine(self.dburl)
-            tables = Base.metadata.tables
-            Base.metadata.create_all(engine, tables.values(), checkfirst=True)
-            logger.debug("creating tables: " + ",".join(k for k in tables.keys()))
-        else:
-            engine = sqlalchemy.create_engine(self.dburl)
+        engine = engine or sqlalchemy.create_engine(self.dburl)
         logger.info("Opening %s", self.dburl)
         maker = sessionmaker(bind=engine)
         self.session = maker()
@@ -51,3 +42,16 @@ class Database(metaclass=Singleton):
         self.session.commit()
         logger.info("%s added to db", obj)
         return obj
+
+    @staticmethod
+    def create():
+        config = Config()
+        if os.path.isfile(config.dburl.replace('sqlite://', '')):
+            raise Exception(f"Database {config.dburl} already exists")
+        logger.info("Creating schema for %s", config.dburl)
+        engine = sqlalchemy.create_engine(config.dburl)
+        tables = Base.metadata.tables
+        Base.metadata.create_all(engine, tables.values(), checkfirst=True)
+        logger.debug("creating tables: " + ",".join(k for k in tables.keys()))
+        return Database(engine=engine)
+

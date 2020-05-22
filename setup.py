@@ -14,7 +14,7 @@ setup(
     version=__version__,
     description="Python SYD",
     entry_points={'console_scripts': ['pysds=pysds.cli:main'], },
-    install_requires=['rsa', 'sqlalchemy', 'pycryptodome', 'injector'],
+    install_requires=['rsa', 'sqlalchemy', 'pycryptodome'],
     setup_requires=['pytest-runner'],
     tests_require=['pytest', 'coverage', 'coverage-badge'],
     test_suite='tests',

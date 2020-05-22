@@ -3,28 +3,30 @@
 import logging.config
 import os
 import unittest
+import uuid
 
+from pysds.config import Config
 from pysds.datamodel import Dataset
 from pysds.dataset_service import DatasetService
 from pysds.user_service import UserService
-from test_config import TestConfig
 
 ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_UUID = "f6f8f779-e2f9-4fb5-8021-eabfa9248ade"
 TEST_PUBKEY = "MEgCQQCm0wfw5h/TYrRJwk0L4UPR7ZgGpswAxMS3V86vhzLA69WRnZzNJ24Wphw5/Yseb4E60Vzp0dW4elkuFR5N+R8TAgMBAAE="
+TEST_CFG_PATH = os.path.abspath(ROOT_DIR + "/../target/")
 
 lastuid = None
 
 
-class TestDatasets(unittest.TestCase):
+class TestDatasetService(unittest.TestCase):
     service: DatasetService = None
 
     @classmethod
     def setUpClass(cls) -> None:
         logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
-        TestConfig.use()
+        Config.create(cfgpath=TEST_CFG_PATH, clean=True, dburl='sqlite:///:memory:')
+        UserService.init().add(uuid.UUID(TEST_UUID), "testuser", "test@email.org", TEST_PUBKEY)
         cls.service = DatasetService()
-        UserService().add(TEST_UUID, "testuser", "test@email.org", TEST_PUBKEY)
 
     def test_import_csv(self):
         csvfile = ROOT_DIR + "/wires.csv"

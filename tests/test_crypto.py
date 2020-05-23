@@ -7,7 +7,6 @@ import uuid
 
 from pysds.crypto import Crypto, CryptoError
 
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_PUBKEY = base64.b64decode(
     "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE=")
 
@@ -15,7 +14,7 @@ TEST_PUBKEY = base64.b64decode(
 class TestCrypto(unittest.TestCase):
 
     def setUp(self) -> None:
-        logging.config.fileConfig(ROOT_DIR + "/logging_test.ini", disable_existing_loggers=False)
+        logging.config.fileConfig(os.path.dirname(__file__) + "/logging_test.ini", disable_existing_loggers=False)
 
     def test_hash(self):
         crypto = Crypto()
@@ -65,7 +64,7 @@ class TestCrypto(unittest.TestCase):
     def test_write_read(self):
         crypto = Crypto(secret=uuid.uuid4().bytes)
         line = 'some line to encrypt'
-        tstfile = ROOT_DIR + "/../target/crypto.sds"
+        tstfile = os.path.dirname(__file__) + "/../target/crypto.sds"
         with open(tstfile, "wb") as wio:
             crypto.write(wio, line)
         with open(tstfile, "rb") as rio:

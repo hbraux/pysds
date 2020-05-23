@@ -23,24 +23,24 @@ class DatasetService(Service):
     NAME_LEN = 128
 
     def __init__(self):
-        # self.config = Config()
-        self.database = Database()
-        self.admin = UserService().admin
+        self._database = Database()
+        self._user_service = UserService()
 
     def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
-        if self.database.get(Dataset, Dataset.name == name):
+        if self._database.get(Dataset, Dataset.name == name):
             return self.failed(f"a dataset with name {name} is already in local store")
         if not outfile:
             outfile = os.path.abspath(os.path.splitext(infile)[0] + self.EXTENSION)
         if not ignore and os.path.isfile(outfile):
             return self.failed(f"file {outfile} already exists")
+        admin = self._user_service.admin()
         dsid = uuid.uuid4()
-        crypto = Crypto(self.admin.pubkey, self.admin.privkey, secret=dsid.bytes)
+        crypto = Crypto(admin.pubkey, admin.privkey, secret=dsid.bytes)
         with open(outfile, "wb") as out:
             out.write(self.UUID.bytes)
             out.write(bytes([self.VERSION]))
             out.write(dsid.bytes)
-            out.write(uuid.UUID(self.admin.uid).bytes)
+            out.write(uuid.UUID(admin.uid).bytes)
             out.write(name.ljust(self.NAME_LEN, ' ').encode()[:self.NAME_LEN])
             crypto.write(out, json.dumps(metadata))
             with open(infile, "r") as inp:
@@ -49,7 +49,7 @@ class DatasetService(Service):
             logger.info(f"file {outfile} created")
         ds = Dataset(uid=str(dsid), name=name, owner=Dataset.OWNED, file=outfile)
         try:
-            self.database.add(ds)
+            self._database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds
@@ -64,13 +64,13 @@ class DatasetService(Service):
             dsid = str(uuid.UUID(bytes=rio.read(16)))
             owner = str(uuid.UUID(bytes=rio.read(16)))
             name = rio.read(self.NAME_LEN).decode().rstrip()
-        if self.database.get(Dataset, Dataset.uid == dsid):
+        if self._database.get(Dataset, Dataset.uid == dsid):
             return self.failed(f"Dataset {dsid} already in local store")
-        if not self.database.get(User, User.uid == owner):
+        if not self._database.get(User, User.uid == owner):
             return self.failed(f"User {owner} is unknown (must be registered)")
         ds = Dataset(uid=str(dsid), name=name, owner=owner, file=datafile)
         try:
-            self.database.add(ds)
+            self._database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds

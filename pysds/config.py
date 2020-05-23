@@ -9,8 +9,8 @@ from pysds.singleton import Singleton
 
 CONFIG_PATH = os.path.expanduser(os.getenv('SDS_CONFIG_PATH', '~/.sds'))
 CONFIG_FILE = "/sds.ini"
-# TODO: temporary value
-DEFAULT_KEY_LEN = 512
+# TEMPORARY as longer keys take time for generation
+KEY_LENGTH = 512
 
 logger = logging.getLogger(__name__)
 
@@ -18,32 +18,33 @@ logger = logging.getLogger(__name__)
 class Config(metaclass=Singleton):
     """This singleton handles application configuration"""
 
-    def __init__(self, cfgpath=CONFIG_PATH, keylen=DEFAULT_KEY_LEN, dburl=None):
-        self.cfgpath = cfgpath
-        self.keylen = keylen
-        self.dburl = dburl or self._read('DatabaseUrl')
+    def __init__(self, config_path=CONFIG_PATH, key_length=KEY_LENGTH, db_url=None):
+        self._config_path = config_path
+        self.key_length = key_length
+        self._db_url = db_url
 
-    def _read(self, key):
-        parser = configparser.ConfigParser()
-        logger.debug("reading key %s ", key,)
-        parser.read(self.cfgpath + CONFIG_FILE)
-        return parser['DEFAULT'].get(key)
+    def db_url(self) -> str:
+        if not self._db_url:
+            self._db_url = self._read('DatabaseUrl')
+        return self._db_url
 
-    @staticmethod
-    def create(cfgpath=CONFIG_PATH, dburl=None, clean=True):
-        if not os.path.isdir(cfgpath):
-            os.makedirs(cfgpath)
-        cfgfile = cfgpath + CONFIG_FILE
-        dburl = dburl or 'sqlite:///' + cfgpath + "/sqlite.db"
+    def create(self) -> None:
+        if not os.path.isdir(self._config_path):
+            os.makedirs(self._config_path)
+        cfgfile = self._config_path + CONFIG_FILE
+        dburl = 'sqlite:///' + self._config_path + "/sqlite.db"
         if os.path.isfile(cfgfile):
-            if clean:
-                logger.warning(f"file {cfgfile} already exists and will be overriden")
-            else:
-                raise Exception(f"file {cfgfile} already exists")
+            raise Exception(f"file {cfgfile} already exists")
         with open(cfgfile, "w") as f:
             f.write("[DEFAULT]\n")
             f.write("DatabaseUrl = " + dburl + "\n")
-        logger.info("file %s created", cfgfile)
-        return Config(cfgpath=cfgpath, dburl=dburl)
+        logger.info(f"file {cfgfile}  created")
 
-
+    def _read(self, key):
+        cfgfile = self._config_path + CONFIG_FILE
+        if not os.path.isfile(cfgfile):
+            raise Exception(f"file {cfgfile} does not exist")
+        parser = configparser.ConfigParser()
+        logger.debug(f"reading key {key}")
+        parser.read(cfgfile)
+        return parser['DEFAULT'].get(key)

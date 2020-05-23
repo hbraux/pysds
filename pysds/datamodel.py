@@ -22,6 +22,9 @@ class User(Base):
     def __repr__(self):
         return f"User({self.sid}, {self.name}, {self.uid}, {self.email}, {base64.b64encode(self.pubkey).decode()})"
 
+    def is_admin(self) -> bool:
+        return self.privkey is not None
+
 
 class Dataset(Base):
     """Datasets Metadata (the files are not in database)"""

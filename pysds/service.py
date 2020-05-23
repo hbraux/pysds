@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Service(metaclass=Singleton):
+    """This is the parent class of all Services. Handle status and error messages and provide singleton pattern"""
     _error_msg = None
 
     @classmethod

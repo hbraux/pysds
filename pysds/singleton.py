@@ -2,6 +2,13 @@
 
 
 class Singleton(type):
+    """Singleton Pattern
+
+    Design assumptions:
+    * Singleton constructor should have no argument or only optional ones
+    * Singleton instantiation cannot fail
+    * Dependencies with other singletons shall be defined in the init method
+    """
     _instances = {}
 
     def __call__(cls, *args, **kwargs):

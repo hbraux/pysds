@@ -18,19 +18,20 @@ class TokenService(Service):
     TOKEN_VERSION = 1
 
     def __init__(self):
-        self.database = Database()
-        self.admin = UserService().admin
+        self._database = Database()
+        self._user_service = UserService()
 
     def create(self, uid: uuid.UUID = None, sid: int = None) -> Union[Dataset, None]:
-        ds = self.database.get(Dataset, Dataset.uid == uid) if uid else self.database.get(Dataset, Dataset.sid == sid)
+        ds = self._database.get(Dataset, Dataset.uid == uid) if uid else self._database.get(Dataset, Dataset.sid == sid)
         if not ds:
             return self.failed(f"DataSet {uid or sid} is unknown")
         if ds.is_owned():
             return self.failed(f"DataSet {uid or sid} is owned")
+        admin = self._user_service.admin()
         token = Token(uid=str(uuid.uuid4()), name=f"DataSet {ds.name}", dataset=ds.uid,
-                      requester=self.admin.uid, granter=ds.owner)
+                      requester=admin.uid, granter=ds.owner)
         try:
-            self.database.add(token)
+            self._database.add(token)
         except Exception as e:
             return self.catched(e)
         return token

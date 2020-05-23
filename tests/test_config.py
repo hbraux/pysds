@@ -22,7 +22,7 @@ class TestConfig(unittest.TestCase):
         config.create()
         self.assertTrue(os.path.isfile(TEST_CFG_PATH + CONFIG_FILE))
 
-    def test_read_conf(self):
+    def test_get_url(self):
         Config.destroy()
         config = Config(config_path=TEST_CFG_PATH)
         self.assertEqual("sqlite:///" + TEST_CFG_PATH + "/sqlite.db", config.db_url())
@@ -31,6 +31,21 @@ class TestConfig(unittest.TestCase):
         Config.destroy()
         config = Config(config_path=TEST_CFG_PATH, db_url='sqlite:///:memory:')
         self.assertEqual('sqlite:///:memory:', config.db_url())
+
+    def test_xception_no_config_file(self):
+        self.cleanup()
+        Config.destroy()
+        config = Config(config_path=TEST_CFG_PATH)
+        self.assertRaises(Exception, config.db_url)
+
+    def test_xception_no_property(self):
+        self.cleanup()
+        Config.destroy()
+        cfgfile = TEST_CFG_PATH + CONFIG_FILE
+        with open(cfgfile, "w") as f:
+            f.write("[DEFAULT]\n")
+        config = Config(config_path=TEST_CFG_PATH)
+        self.assertRaises(Exception, config.db_url)
 
     @staticmethod
     def cleanup():

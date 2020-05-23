@@ -47,4 +47,7 @@ class Config(metaclass=Singleton):
         parser = configparser.ConfigParser()
         logger.debug(f"reading key {key}")
         parser.read(cfgfile)
-        return parser['DEFAULT'].get(key)
+        value = parser['DEFAULT'].get(key)
+        if not value:
+            raise Exception(f"file {cfgfile} does not contain key {key}")
+        return value

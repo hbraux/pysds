@@ -20,7 +20,7 @@ develop: ## install module in development mode
 
 test: ## run unit tests
 	PYTHONDONTWRITEBYTECODE=1 coverage run --source=pysds -m pytest -v
-	coverage report
+	coverage html && coverage report
 
 badge:
 	coverage-badge -o coverage.svg
@@ -32,4 +32,7 @@ testcli:  ## run cli tests
 	pysds users
 	pysds import -i ork.mymank.wires tests/wires.csv
 	pysds load tests/wires.sds_
+
+show:
+	firefox htmlcov/index.html
 

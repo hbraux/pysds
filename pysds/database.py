@@ -25,15 +25,13 @@ class Database(metaclass=Singleton):
         self._config = Config()
         self._session = None
 
-    def in_memory(self) -> bool:
-        return self._config.db_url() == MEMDB_URL
-
     def session(self) -> Session:
         if not self._session:
-            if self.in_memory():
-                self._session = self._create(self._config.db_url())
+            dburl = self._config.db_url()
+            if dburl == MEMDB_URL:
+                self._session = self._create(dburl)
             else:
-                self._session = self._open(self._config.db_url())
+                self._session = self._open(dburl)
         return self._session
 
     def close(self) -> None:

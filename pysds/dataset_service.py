@@ -34,6 +34,8 @@ class DatasetService(Service):
         if not ignore and os.path.isfile(outfile):
             return self.failed(f"file {outfile} already exists")
         admin = self._user_service.admin()
+        if not admin:
+            return self.failed(self._user_service.errormsg())
         dsid = uuid.uuid4()
         crypto = Crypto(admin.pubkey, admin.privkey, secret=dsid.bytes)
         with open(outfile, "wb") as out:
@@ -54,24 +56,29 @@ class DatasetService(Service):
             return self.catched(e)
         return ds
 
-    def load(self, datafile) -> Union[Dataset, None]:
+    def load(self, datafile: str) -> Union[Dataset, None]:
         with open(datafile, "rb") as rio:
             if rio.read(16) != self.UUID.bytes:
                 return self.failed(f"{datafile} is not a DataSet file")
             version = rio.read(1)[0]
             if version != self.VERSION:
                 return self.failed(f"File version {version} not supported")
-            dsid = str(uuid.UUID(bytes=rio.read(16)))
-            owner = str(uuid.UUID(bytes=rio.read(16)))
+            dataset_id = str(uuid.UUID(bytes=rio.read(16)))
+            owner = uuid.UUID(bytes=rio.read(16))
             name = rio.read(self.NAME_LEN).decode().rstrip()
-        if self._database.get(Dataset, Dataset.uid == dsid):
-            return self.failed(f"Dataset {dsid} already in local store")
-        if not self._database.get(User, User.uid == owner):
+        if self._database.get(Dataset, Dataset.uid == dataset_id):
+            return self.failed(f"Dataset {dataset_id} already in local store")
+        if not self._user_service.find(owner):
             return self.failed(f"User {owner} is unknown (must be registered)")
-        ds = Dataset(uid=str(dsid), name=name, owner=owner, file=datafile)
+        ds = Dataset(uid=dataset_id, name=name, owner=str(owner), file=datafile)
         try:
             self._database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds
 
+    def find(self, uid: UUID) -> Union[Dataset, None]:
+        try:
+            return self._database.get(Dataset, Dataset.uid == uid)
+        except Exception as e:
+            return self.catched(e)

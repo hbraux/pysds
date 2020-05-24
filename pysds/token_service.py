@@ -7,6 +7,7 @@ from typing import Union
 
 from pysds.database import Database
 from pysds.datamodel import *
+from pysds.dataset_service import DatasetService
 from pysds.service import Service
 from pysds.user_service import UserService
 
@@ -20,14 +21,17 @@ class TokenService(Service):
     def __init__(self):
         self._database = Database()
         self._user_service = UserService()
+        self._dataset_service = DatasetService()
 
     def create(self, uid: uuid.UUID = None, sid: int = None) -> Union[Dataset, None]:
-        ds = self._database.get(Dataset, Dataset.uid == uid) if uid else self._database.get(Dataset, Dataset.sid == sid)
+        ds = self._dataset_service.find(uid)
         if not ds:
             return self.failed(f"DataSet {uid or sid} is unknown")
         if ds.is_owned():
             return self.failed(f"DataSet {uid or sid} is owned")
         admin = self._user_service.admin()
+        if not admin:
+            return self.failed(self._user_service.errormsg())
         token = Token(uid=str(uuid.uuid4()), name=f"DataSet {ds.name}", dataset=ds.uid,
                       requester=admin.uid, granter=ds.owner)
         try:

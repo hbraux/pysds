@@ -4,11 +4,11 @@ import logging.config
 import os
 import unittest
 import uuid
+from unittest.mock import MagicMock, patch
 
 from pysds.config import Config
-from pysds.datamodel import Dataset
+from pysds.datamodel import Dataset, User
 from pysds.dataset_service import DatasetService
-from pysds.user_service import UserService
 
 TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 TEST_UUID = "f6f8f779-e2f9-4fb5-8021-eabfa9248ade"
@@ -24,9 +24,9 @@ class TestDatasetService(unittest.TestCase):
     def setUpClass(cls):
         logging.config.fileConfig(os.path.dirname(__file__) + "/logging_test.ini", disable_existing_loggers=False)
         Config(db_url='sqlite:///:memory:', key_length=512)
-        UserService().add(uuid.UUID(TEST_UUID), "testuser", "test@email.org", TEST_PUBKEY)
         cls.service = DatasetService()
 
+    @patch('pysds.user_service.UserService.admin', MagicMock(return_value=User(uid=str(uuid.uuid4()))))
     def test_import_csv(self):
         csvfile = TESTS_DIR + "/wires.csv"
         ds = self.service.imp("test", csvfile, {}, ignore=True)
@@ -34,6 +34,7 @@ class TestDatasetService(unittest.TestCase):
         self.assertTrue(os.path.isfile(TESTS_DIR + "/wires.sds"))
         self.assertEqual(ds.owner, Dataset.OWNED)
 
+    @patch('pysds.user_service.UserService.find', MagicMock(return_value=User(uid=uuid.UUID(TEST_UUID))))
     def test_load(self):
         global lastuid
         sdsfile = TESTS_DIR + "/wires.sds_"

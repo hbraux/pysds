@@ -20,16 +20,18 @@ class TestUserService(unittest.TestCase):
         self.service = UserService()
 
     def test_admin(self):
-        user = self.service.admin()
-        self.assertIsNotNone(user)
-        self.assertTrue(user.is_admin())
+        admin = self.service.create_admin()
+        self.assertIsNotNone(admin)
+        self.assertEqual(admin, self.service.admin())
+        self.assertTrue(admin.is_admin)
 
-    def test_user_add_list(self):
+    def test_user_add(self):
         testuid = uuid.uuid4()
         pubkey = "MEgCQQChLLM582ZAE+rSsDimhXbln+8jCY5gDeyNGdgIK5crhIU3kiRJWr6V711Or2AmtMBHHoFf1rz1Mbjw+YOn4x5JAgMBAAE="
         user = self.service.add(testuid, "testuser", "test@email.org", pubkey)
         self.assertEqual(User, type(user))
         self.assertIn(user, self.service.list())
+        self.assertEqual(user, self.service.find(testuid))
         duplicate = self.service.add(testuid, "otheruser", "other@email.org", pubkey)
         self.assertEqual(None, duplicate)
         self.assertEqual("IntegrityError: (sqlite3.IntegrityError) UNIQUE constraint failed: users.uid",

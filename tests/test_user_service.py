@@ -22,8 +22,9 @@ class TestUserService(unittest.TestCase):
     def test_admin(self):
         admin = self.service.create_admin()
         self.assertIsNotNone(admin)
-        self.assertEqual(admin, self.service.admin())
         self.assertTrue(admin.is_admin)
+        self.assertEqual(admin, self.service.get_admin())
+        self.assertEqual(admin, self.service.admin())
 
     def test_user_add(self):
         testuid = uuid.uuid4()

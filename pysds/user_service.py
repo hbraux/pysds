@@ -22,12 +22,15 @@ class UserService(Service):
         self._database = Database()
         self._admin = None
 
+    def get_admin(self):
+        try:
+            return self._database.get(User, User.is_admin == 1)
+        except Exception as e:
+            return self.catched(e)
+
     def admin(self):
         if not self._admin:
-            try:
-                self._admin = self._database.get(User, User.is_admin is True)
-            except Exception as e:
-                return self.catched(e)
+            self._admin = self.get_admin()
             if not self._admin:
                 return self.failed("admin user is not created")
         return self._admin
@@ -66,7 +69,7 @@ class UserService(Service):
         crypto = Crypto()
         crypto.genkeys(self._config.key_length)
         username = os.environ.get('USER')
-        admin = User(uid=str(uuid4), name=username, email="@admin", is_admin=True, pubkey=crypto.pubkey, privkey=crypto.privkey)
+        admin = User(uid=str(uuid4), name=username, email="@admin", pubkey=crypto.pubkey, privkey=crypto.privkey, is_admin=True)
         try:
             self._database.add(admin)
         except Exception as e:

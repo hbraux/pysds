@@ -2,7 +2,7 @@
 
 import base64
 
-from sqlalchemy import Column, Integer, String, LargeBinary, DateTime, Boolean
+from sqlalchemy import Column, Integer, String, LargeBinary, DateTime
 from sqlalchemy.sql import func
 
 from pysds.database import Base
@@ -18,7 +18,7 @@ class User(Base):
     email = Column(String)
     pubkey = Column(LargeBinary)
     privkey = Column(LargeBinary)
-    is_admin = Column(Boolean, default=False)
+    is_admin = Column(Integer, default=0)
 
     def __repr__(self):
         return f"User({self.sid}, {self.name}, {self.uid}, {self.email}, {base64.b64encode(self.pubkey).decode()})"

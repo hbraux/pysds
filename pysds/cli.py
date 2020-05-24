@@ -50,8 +50,8 @@ def to_json(s: str) -> dict:
 
 
 def init_app():
-    service = UserService()
-    if not service.create():
+    service = UserService.create()
+    if service.failure():
         die(service.errormsg())
     print(service.admin())
 

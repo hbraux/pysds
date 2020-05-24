@@ -4,7 +4,7 @@ import logging.config
 import os
 import unittest
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 
 from pysds.config import Config
 from pysds.datamodel import Dataset, User
@@ -18,7 +18,7 @@ lastuid = None
 
 
 class TestDatasetService(unittest.TestCase):
-    service: DatasetService = None
+    service = None
 
     @classmethod
     def setUpClass(cls):
@@ -26,10 +26,16 @@ class TestDatasetService(unittest.TestCase):
         Config(db_url='sqlite:///:memory:', key_length=512)
         cls.service = DatasetService()
 
-    @patch('pysds.user_service.UserService.admin', MagicMock(return_value=User(uid=str(uuid.uuid4()))))
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.service.database.close()
+        Config.destroy()
+
+    @patch('pysds.user_service.UserService.admin', PropertyMock(return_value=User(uid=str(uuid.uuid4()))), create=True)
     def test_import_csv(self):
         csvfile = TESTS_DIR + "/wires.csv"
         ds = self.service.imp("test", csvfile, {}, ignore=True)
+        print(self.service.errormsg())
         self.assertEqual(Dataset, type(ds))
         self.assertTrue(os.path.isfile(TESTS_DIR + "/wires.sds"))
         self.assertEqual(ds.owner, Dataset.OWNED)

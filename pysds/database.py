@@ -21,53 +21,48 @@ Base = declarative_base()
 class Database(metaclass=Singleton):
     """Small database wrapper on top of SQL Alchemy"""
 
-    def __init__(self):
-        self._config = Config()
-        self._session = None
-
-    def session(self) -> Session:
-        if not self._session:
-            dburl = self._config.db_url()
-            if dburl == MEMDB_URL:
-                self._session = self._create(dburl)
-            else:
-                self._session = self._open(dburl)
-        return self._session
-
-    def close(self) -> None:
-        logger.debug("closing session")
-        self._session.close()
+    def __init__(self, config=Config):
+        db_url = config().db_url
+        if db_url == MEMDB_URL:
+            self.session = self._create_schema(db_url)
+        else:
+            self.session = self._open(db_url)
 
     def get(self, entity, cond) -> Any:
-        return self.session().query(entity).filter(cond).scalar()
+        return self.session.query(entity).filter(cond).scalar()
 
     def list(self, entity) -> Any:
-        return self.session().query(entity).all()
+        return self.session.query(entity).all()
 
     def add(self, obj) -> Any:
-        self.session().add(obj)
-        self.session().commit()
+        self.session.add(obj)
+        self.session.commit()
         logger.info("%s added to db", obj)
         return obj
 
-    def create(self):
-        self._create(self._config.db_url())
+    def close(self):
+        self.session.close()
 
     @staticmethod
-    def _open(dburl):
-        engine = sqlalchemy.create_engine(dburl)
-        logger.info(f"Opening {dburl}")
+    def create(db_url):
+        if os.path.isfile(db_url.replace('sqlite://', '')):
+            raise Exception(f"Database {db_url} already exists")
+        Database._create_schema(db_url)
+
+    @staticmethod
+    def _open(db_url) -> Session:
+        engine = sqlalchemy.create_engine(db_url)
+        logger.info(f"Opening {db_url}")
         maker = sessionmaker(bind=engine)
         return maker()
 
     @staticmethod
-    def _create(dburl):
-        if os.path.isfile(dburl.replace('sqlite://', '')):
-            raise Exception(f"Database {dburl} already exists")
-        logger.info("Creating schema for %s", dburl)
-        engine = sqlalchemy.create_engine(dburl)
+    def _create_schema(db_url) -> Session:
+        logger.info("Creating schema for %s", db_url)
+        engine = sqlalchemy.create_engine(db_url)
         tables = Base.metadata.tables
         Base.metadata.create_all(engine, tables.values(), checkfirst=True)
         logger.debug("creating tables: " + ",".join(k for k in tables.keys()))
         maker = sessionmaker(bind=engine)
         return maker()
+

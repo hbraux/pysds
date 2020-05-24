@@ -17,23 +17,14 @@ logger = logging.getLogger(__name__)
 class UserService(Service):
     """Application Users Services"""""
 
-    def __init__(self):
-        self._config = Config()
-        self._database = Database()
-        self._admin = None
-
-    def get_admin(self):
+    def __init__(self, config=Config, database=Database):
+        self.config = config()
+        self.database = database()
+        self.admin = None
         try:
-            return self._database.get(User, User.is_admin == 1)
+            self.admin = self.database.get(User, User.is_admin == 1)
         except Exception as e:
-            return self.catched(e)
-
-    def admin(self):
-        if not self._admin:
-            self._admin = self.get_admin()
-            if not self._admin:
-                return self.failed("admin user is not created")
-        return self._admin
+            self.catched(e)
 
     def add(self, uid: uuid.UUID, name: str, email: str, pubstr: str) -> Union[User, None]:
         try:
@@ -42,39 +33,48 @@ class UserService(Service):
             return self.catched(e)
         user = User(uid=str(uid), name=name, email=email, pubkey=pubkey)
         try:
-            self._database.add(user)
+            self.database.add(user)
         except Exception as e:
             return self.catched(e)
         return user
 
     def list(self) -> List[User]:
-        return self._database.list(User)
+        try:
+            return self.database.list(User)
+        except Exception as e:
+            self.catched(e)
+            return []
 
     def find(self, uid: uuid.UUID) -> Union[User, None]:
         try:
-            return self._database.get(User, User.uid == str(uid))
+            return self.database.get(User, User.uid == str(uid))
         except Exception as e:
             return self.catched(e)
 
-    def create(self) -> Union[User, None]:
+    @staticmethod
+    def create():
         try:
-            Config().create()
-            Database().create()
+            config = Config.create()
+            Database.create(config.db_url)
         except Exception as e:
-            return self.catched(e)
-        return self.create_admin()
+            return Service.catched(e)
+        service = UserService()
+        service.create_admin()
+        return service
 
-    def create_admin(self):
-        uuid4 = uuid.uuid4()
+    def create_admin(self) -> Union[User, None]:
+        uid = str(uuid.uuid4())
         crypto = Crypto()
-        crypto.genkeys(self._config.key_length)
+        crypto.genkeys(self.config.key_length)
         username = os.environ.get('USER')
-        admin = User(uid=str(uuid4), name=username, email="@admin", pubkey=crypto.pubkey, privkey=crypto.privkey, is_admin=True)
+        admin = User(uid=uid, name=username, email="@admin", pubkey=crypto.pubkey, privkey=crypto.privkey, is_admin=True)
         try:
-            self._database.add(admin)
+            self.database.add(admin)
         except Exception as e:
             return self.catched(e)
         logger.info("Admin user created")
-        self._admin = admin
+        self.admin = admin
         return admin
+
+
 

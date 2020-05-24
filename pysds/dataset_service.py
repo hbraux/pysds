@@ -22,20 +22,20 @@ class DatasetService(Service):
     EXTENSION = '.sds'
     NAME_LEN = 128
 
-    def __init__(self):
-        self._database = Database()
-        self._user_service = UserService()
+    def __init__(self, database=Database, user_service=UserService):
+        self.database = database()
+        self.user_service = user_service()
 
     def imp(self, name: str, infile: str, metadata: dict, outfile=None, ignore=False) -> Union[Dataset, None]:
-        if self._database.get(Dataset, Dataset.name == name):
+        if self.database.get(Dataset, Dataset.name == name):
             return self.failed(f"a dataset with name {name} is already in local store")
         if not outfile:
             outfile = os.path.abspath(os.path.splitext(infile)[0] + self.EXTENSION)
         if not ignore and os.path.isfile(outfile):
             return self.failed(f"file {outfile} already exists")
-        admin = self._user_service.admin()
+        admin = self.user_service.admin
         if not admin:
-            return self.failed(self._user_service.errormsg())
+            return self.failed(f"admin does not exist")
         dsid = uuid.uuid4()
         crypto = Crypto(admin.pubkey, admin.privkey, secret=dsid.bytes)
         with open(outfile, "wb") as out:
@@ -51,7 +51,7 @@ class DatasetService(Service):
             logger.info(f"file {outfile} created")
         ds = Dataset(uid=str(dsid), name=name, owner=Dataset.OWNED, file=outfile)
         try:
-            self._database.add(ds)
+            self.database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds
@@ -66,19 +66,19 @@ class DatasetService(Service):
             dataset_id = str(uuid.UUID(bytes=rio.read(16)))
             owner = uuid.UUID(bytes=rio.read(16))
             name = rio.read(self.NAME_LEN).decode().rstrip()
-        if self._database.get(Dataset, Dataset.uid == dataset_id):
+        if self.database.get(Dataset, Dataset.uid == dataset_id):
             return self.failed(f"Dataset {dataset_id} already in local store")
-        if not self._user_service.find(owner):
+        if not self.user_service.find(owner):
             return self.failed(f"User {owner} is unknown (must be registered)")
         ds = Dataset(uid=dataset_id, name=name, owner=str(owner), file=datafile)
         try:
-            self._database.add(ds)
+            self.database.add(ds)
         except Exception as e:
             return self.catched(e)
         return ds
 
     def find(self, uid: UUID) -> Union[Dataset, None]:
         try:
-            return self._database.get(Dataset, Dataset.uid == uid)
+            return self.database.get(Dataset, Dataset.uid == uid)
         except Exception as e:
             return self.catched(e)

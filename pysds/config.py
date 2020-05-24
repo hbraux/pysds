@@ -19,35 +19,32 @@ class Config(metaclass=Singleton):
     """This singleton handles application configuration"""
 
     def __init__(self, config_path=CONFIG_PATH, key_length=KEY_LENGTH, db_url=None):
-        self._config_path = config_path
+        self.config_path = config_path
         self.key_length = key_length
-        self._db_url = db_url
+        self.db_url = db_url or self._read('DatabaseUrl')
 
-    def db_url(self) -> str:
-        if not self._db_url:
-            self._db_url = self._read('DatabaseUrl')
-        return self._db_url
-
-    def create(self) -> None:
-        if not os.path.isdir(self._config_path):
-            os.makedirs(self._config_path)
-        cfgfile = self._config_path + CONFIG_FILE
-        dburl = 'sqlite:///' + self._config_path + "/sqlite.db"
-        if os.path.isfile(cfgfile):
-            raise Exception(f"file {cfgfile} already exists")
-        with open(cfgfile, "w") as f:
+    @staticmethod
+    def create(config_path=CONFIG_PATH):
+        if not os.path.isdir(config_path):
+            os.makedirs(config_path)
+        config_file = config_path + CONFIG_FILE
+        db_url = 'sqlite:///' + config_path + "/sqlite.db"
+        if os.path.isfile(config_file):
+            raise Exception(f"file {config_file} already exists")
+        with open(config_file, "w") as f:
             f.write("[DEFAULT]\n")
-            f.write("DatabaseUrl = " + dburl + "\n")
-        logger.info(f"file {cfgfile}  created")
+            f.write("DatabaseUrl = " + db_url + "\n")
+        logger.info(f"file {config_file}  created")
+        return Config(config_path=config_path)
 
     def _read(self, key):
-        cfgfile = self._config_path + CONFIG_FILE
-        if not os.path.isfile(cfgfile):
-            raise Exception(f"file {cfgfile} does not exist")
+        config_file = self.config_path + CONFIG_FILE
+        if not os.path.isfile(config_file):
+            raise Exception(f"file {config_file} does not exist")
         parser = configparser.ConfigParser()
         logger.debug(f"reading key {key}")
-        parser.read(cfgfile)
+        parser.read(config_file)
         value = parser['DEFAULT'].get(key)
         if not value:
-            raise Exception(f"file {cfgfile} does not contain key {key}")
+            raise Exception(f"file {config_file} does not contain key {key}")
         return value

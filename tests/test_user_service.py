@@ -10,21 +10,24 @@ from pysds.user_service import UserService
 
 
 class TestUserService(unittest.TestCase):
+    service = None
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls) -> None:
         logging.config.fileConfig(os.path.dirname(__file__) + "/logging_test.ini", disable_existing_loggers=False)
-
-    def setUp(self) -> None:
         Config(db_url='sqlite:///:memory:', key_length=512)
-        self.service = UserService()
+        cls.service = UserService()
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.service.database.close()
+        Config.destroy()
 
     def test_admin(self):
         admin = self.service.create_admin()
         self.assertIsNotNone(admin)
         self.assertTrue(admin.is_admin)
-        self.assertEqual(admin, self.service.get_admin())
-        self.assertEqual(admin, self.service.admin())
+        self.assertEqual(admin, self.service.admin)
 
     def test_user_add(self):
         testuid = uuid.uuid4()
@@ -43,3 +46,4 @@ class TestUserService(unittest.TestCase):
         user = self.service.add(testuid, "otheruser", "other@email.org", "bad key")
         self.assertEqual(None, user)
         self.assertEqual("Error: Incorrect padding", self.service.errormsg())
+

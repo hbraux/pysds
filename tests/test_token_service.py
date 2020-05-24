@@ -4,7 +4,7 @@ import logging.config
 import os
 import unittest
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, PropertyMock
 
 from pysds.config import Config
 from pysds.datamodel import Token, User, Dataset
@@ -25,13 +25,14 @@ class TestTokenService(unittest.TestCase):
     def setUpClass(cls) -> None:
         logging.config.fileConfig(os.path.dirname(__file__) + "/logging_test.ini", disable_existing_loggers=False)
         Config(db_url='sqlite:///:memory:', key_length=512)
-        # user_service = UserService()
-        # user_service.admin = MagicMock(return_value=User(uid=str(uuid.uuid4()), name="mock admin"))
-        # user_service.find = MagicMock(return_value=User(uid=uuid.UUID(TEST_UUID), name="mock user"))
-        # cls.dsuid = DatasetService().load(TEST_DIR + "/wires.sds_").uid
         cls.service = TokenService()
 
-    @patch('pysds.user_service.UserService.admin', MagicMock(return_value=User(uid=str(uuid.uuid4()))))
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.service.database.close()
+        Config.destroy()
+
+    @patch('pysds.user_service.UserService.admin', PropertyMock(return_value=User(uid=str(uuid.uuid4()))), create=True)
     @patch('pysds.dataset_service.DatasetService.find', MagicMock(return_value=Dataset(uid=str(dsuid))))
     def test_request(self):
         token = self.service.create(self.dsuid)
